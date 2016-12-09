@@ -4,11 +4,13 @@ var selectParentBlockFor = function (component) {
 
 var prompting = {
     defineCreatedComponent: defineCreaedComponent,
+    describeCreatedBlock: describeCreatedBlock,
     describeCreatedElement: describeCreatedElement,
     describeCreatedModifier: describeCreatedModifier
 };
 
-function defineCreaedComponent(prefixForElement, prefixForModifier) {
+function defineCreaedComponent(prefixForElement, prefixForModifier, useCollections) {
+
     return [
         {
             type: 'list',
@@ -37,7 +39,27 @@ function defineCreaedComponent(prefixForElement, prefixForModifier) {
     ];
 }
 
-function describeCreatedElement(prefixForElement, prefixForModifier) {
+function describeCreatedBlock(prefixForElement, prefixForModifier, useCollections) {
+    return [
+        {
+            type: 'list',
+            name: 'putBlockInCollection',
+            message: 'Should I put this Block in collection?',
+            choices: [
+                {
+                    name: 'No',
+                    value: false
+                },
+                {
+                    name: 'Yes',
+                    value: false
+                }
+            ]
+        }
+    ];
+}
+
+function describeCreatedElement(prefixForElement, prefixForModifier, useCollections) {
     return [
         {
             type: 'list',
@@ -61,7 +83,7 @@ function describeCreatedElement(prefixForElement, prefixForModifier) {
     ];
 }
 
-function describeCreatedModifier(prefixForElement, prefixForModifier) {
+function describeCreatedModifier(prefixForElement, prefixForModifier, useCollections) {
     return [
         {
             type: 'list',
