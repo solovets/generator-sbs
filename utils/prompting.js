@@ -1,6 +1,7 @@
 var selectParentBlockFor = function (component) {
     return 'Please select parent block of ' + component;
 };
+    var existingBlocks = require('./existing-blocks');
 
 var prompting = {
     defineCreatedComponent: defineCreaedComponent,
@@ -45,6 +46,7 @@ function describeCreatedBlock(prefixForElement, prefixForModifier, useCollection
             type: 'list',
             name: 'putBlockInCollection',
             message: 'Should I put this Block in collection?',
+            when: useCollections,
             choices: [
                 {
                     name: 'No',
@@ -52,7 +54,25 @@ function describeCreatedBlock(prefixForElement, prefixForModifier, useCollection
                 },
                 {
                     name: 'Yes',
-                    value: false
+                    value: true
+                }
+            ]
+        },
+        {
+            type: 'list',
+            name: 'parentCollectionOfBlock',
+            message: 'Please choose Collection for block:',
+            when: function(answer) {
+                return answer.putBlockInCollection;
+            },
+            choices: [
+                {
+                    name: 'col1',
+                    value: 'col1'
+                },
+                {
+                    name: 'col2',
+                    value: 'col2'
                 }
             ]
         }
