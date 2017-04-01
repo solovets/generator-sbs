@@ -10,7 +10,12 @@ var prompting = {
     describeCreatedModifier: describeCreatedModifier
 };
 
-function defineCreaedComponent(prefixForElement, prefixForModifier, useCollections) {
+function defineCreaedComponent(generatorConfig) {
+
+    var prefixForElement = generatorConfig.prefixForElement,
+        prefixForModifier = generatorConfig.prefixForModifier,
+        useCollections = generatorConfig.useCollections,
+        collectionSuffix = generatorConfig.collectionSuffix;
 
     return [
         {
@@ -29,6 +34,10 @@ function defineCreaedComponent(prefixForElement, prefixForModifier, useCollectio
                 {
                     name: prefixForModifier + 'modifier',
                     value: 'modifier'
+                },
+                {
+                    name: 'new ' + collectionSuffix,
+                    value: 'collection'
                 }
             ]
         },
@@ -40,7 +49,13 @@ function defineCreaedComponent(prefixForElement, prefixForModifier, useCollectio
     ];
 }
 
-function describeCreatedBlock(prefixForElement, prefixForModifier, useCollections) {
+function describeCreatedBlock(generatorConfig) {
+
+    var prefixForElement = generatorConfig.prefixForElement,
+        prefixForModifier = generatorConfig.prefixForModifier,
+        useCollections = generatorConfig.useCollections,
+        collectionSuffix = generatorConfig.collectionSuffix;
+
     return [
         {
             type: 'list',
@@ -79,7 +94,13 @@ function describeCreatedBlock(prefixForElement, prefixForModifier, useCollection
     ];
 }
 
-function describeCreatedElement(prefixForElement, prefixForModifier, useCollections) {
+function describeCreatedElement(generatorConfig) {
+
+    var prefixForElement = generatorConfig.prefixForElement,
+        prefixForModifier = generatorConfig.prefixForModifier,
+        useCollections = generatorConfig.useCollections,
+        collectionSuffix = generatorConfig.collectionSuffix;
+
     return [
         {
             type: 'list',
@@ -103,7 +124,13 @@ function describeCreatedElement(prefixForElement, prefixForModifier, useCollecti
     ];
 }
 
-function describeCreatedModifier(prefixForElement, prefixForModifier, useCollections) {
+function describeCreatedModifier(generatorConfig) {
+
+    var prefixForElement = generatorConfig.prefixForElement,
+        prefixForModifier = generatorConfig.prefixForModifier,
+        useCollections = generatorConfig.useCollections,
+        collectionSuffix = generatorConfig.collectionSuffix;
+
     return [
         {
             type: 'list',

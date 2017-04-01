@@ -10,54 +10,76 @@ var simple_bem = require('yeoman-generator'),
     existingBlocks = require('../../utils/existing-blocks');
 
 module.exports = simple_bem.Base.extend({
-    config: function () {
-        this.config.save();
-    },
+
     prompting: function () {
 
-        var prefixForElement = this.config.get('prefixForElement') || '__',
-            prefixForModifier = this.config.get('prefixForModifier') || '--',
-            useCollections = this.config.get('useCollections') || true,
+        var generatorConfig = this.config.getAll();
+
+        if (!('prefixForElement' in generatorConfig)) {
+            this.config.set('prefixForElement', '__');
+        }
+
+        if (!('prefixForModifier' in generatorConfig)) {
+            this.config.set('prefixForModifier', '--');
+        }
+
+        if (!('useCollections' in generatorConfig)) {
+            this.config.set('useCollections', true);
+        }
+
+        if (!('collectionSuffix' in generatorConfig)) {
+            this.config.set('collectionSuffix', '-bem-collection');
+        }
+
+        var done = this.async(),
             bemDir = this.config.get('bemDir') || 'styles',
             bemDirPath = path.join(process.cwd(), bemDir);
 
-        isBemDirectoryExists(bemDirPath);
+        generatorConfig = this.config.getAll();
 
+        isBemDirectoryExists(bemDirPath);
 
         console.log(existingBlocks(bemDirPath));
 
-        this.prompt(prompting.defineCreatedComponent(prefixForElement, prefixForModifier, useCollections)).then(function(answers) {
+        this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
 
             this.answers = answers;
 
-            if (this.answers.creatingComponentType === 'block' && useCollections) {
+            if (this.answers.creatingComponentType === 'collection') {
+                done();
+            }
 
-                this.prompt(prompting.describeCreatedBlock(prefixForElement, prefixForModifier, useCollections)).then(function(answers) {
+            if (this.answers.creatingComponentType === 'block') {
+
+                this.prompt(prompting.describeCreatedBlock(generatorConfig)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
+                    done();
                 }.bind(this));
 
             }
 
             if (this.answers.creatingComponentType === 'element') {
 
-                this.prompt(prompting.describeCreatedElement(prefixForElement, prefixForModifier, useCollections)).then(function(answers) {
+                this.prompt(prompting.describeCreatedElement(generatorConfig)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
+                    done();
                 }.bind(this));
 
             }
 
             if (this.answers.creatingComponentType === 'modifier') {
 
-                this.prompt(prompting.describeCreatedModifier(prefixForElement, prefixForModifier, useCollections)).then(function(answers) {
+                this.prompt(prompting.describeCreatedModifier(generatorConfig)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
+                    done();
                 }.bind(this));
 
             }
-
         }.bind(this));
     },
 
     writing: function () {
-        console.log('writing');
+        console.log('write');
+        fs.writeFileSync('./test.txt', '123', 'utf8');
     }
 });
