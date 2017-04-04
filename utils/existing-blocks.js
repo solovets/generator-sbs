@@ -5,27 +5,40 @@ var fs = require('fs'),
     modulesCommonPath =  path.join(modulesGeneralPath, '/' + common),
     existingBlocks = getExistingBlocks;
 
-function getExistingBlocks(prefixForElement, prefixForModifier, useCollections) {
+function getExistingBlocks(generatorConfig, bemDirPath) {
 
-    prefixForElement = '__';
-    prefixForModifier = '--';
-    useCollections = true;
-
-    var dirContains = fs.readdirSync(path.join(process.cwd(), 'styles'));
+    var dirContains = fs.readdirSync(bemDirPath);
     var dirContainsBlocks = [];
     var dirContainsCollections = [];
+    var i;
 
 
     // keep only directories in array
     for (i in dirContains) {
         if (dirContains.hasOwnProperty(i)) {
-            if (fs.lstatSync(path.join(process.cwd(), 'styles', dirContains[i])).isDirectory() !== true) {
+            if (fs.lstatSync(path.join(bemDirPath, dirContains[i])).isDirectory() !== true) {
                 dirContains.splice(i, 1);
             } else {
-                if (/.+-bem-collection/.test(dirContains[i])) {
+                if (/.+-bem-collection$/.test(dirContains[i]) && generatorConfig.useCollections) {
                     dirContainsCollections.push(dirContains[i]);
                 } else {
                     dirContainsBlocks.push(dirContains[i]);
+                }
+            }
+        }
+    }
+
+    var collectionContains, item;
+
+    if (generatorConfig.useCollections && dirContainsCollections.length > 0) {
+        for (i in dirContainsCollections) {
+            if (dirContainsCollections.hasOwnProperty(i)) {
+                collectionContains = fs.readdirSync(path.join(bemDirPath, dirContainsCollections[i]));
+
+                for (item in collectionContains) {
+                    if (fs.lstatSync(path.join(bemDirPath, dirContainsCollections[i], collectionContains[i])).isDirectory()) {
+                        dirContainsBlocks.push(collectionContains[item] + ' in collection ' + dirContainsCollections[i]);
+                    }
                 }
             }
         }

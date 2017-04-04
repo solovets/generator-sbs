@@ -31,23 +31,25 @@ module.exports = simple_bem.Base.extend({
             this.config.set('collectionSuffix', '-bem-collection');
         }
 
+        if (!('bemDirectory' in generatorConfig)) {
+            this.config.set('bemDirectory', 'styles');
+        }
+
+
         var done = this.async(),
-            bemDir = this.config.get('bemDir') || 'styles',
-            bemDirPath = path.join(process.cwd(), bemDir);
+            bemDirPath = path.join(process.cwd(), this.config.get('bemDirectory')),
+            getExisting;
+
 
         generatorConfig = this.config.getAll();
-
         isBemDirectoryExists(bemDirPath);
+        getExisting = existingBlocks(generatorConfig, bemDirPath);
 
-        console.log(existingBlocks(bemDirPath));
+        console.log(JSON.stringify(getExisting, null, 4));
 
         this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
 
             this.answers = answers;
-
-            if (this.answers.creatingComponentType === 'collection') {
-                done();
-            }
 
             if (this.answers.creatingComponentType === 'block') {
 
@@ -79,7 +81,6 @@ module.exports = simple_bem.Base.extend({
     },
 
     writing: function () {
-        console.log('write');
-        fs.writeFileSync('./test.txt', '123', 'utf8');
+        console.log( JSON.stringify(this.answers, null, 4) );
     }
 });

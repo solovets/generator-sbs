@@ -1,7 +1,9 @@
 var selectParentBlockFor = function (component) {
     return 'Please select parent block of ' + component;
 };
-    var existingBlocks = require('./existing-blocks');
+var existingBlocks = require('./existing-blocks');
+
+var inquirer = require('inquirer');
 
 var prompting = {
     defineCreatedComponent: defineCreaedComponent,
@@ -11,11 +13,6 @@ var prompting = {
 };
 
 function defineCreaedComponent(generatorConfig) {
-
-    var prefixForElement = generatorConfig.prefixForElement,
-        prefixForModifier = generatorConfig.prefixForModifier,
-        useCollections = generatorConfig.useCollections,
-        collectionSuffix = generatorConfig.collectionSuffix;
 
     return [
         {
@@ -28,16 +25,12 @@ function defineCreaedComponent(generatorConfig) {
                     value: 'block'
                 },
                 {
-                    name: prefixForElement + 'element',
+                    name: generatorConfig.prefixForElement + 'element',
                     value: 'element'
                 },
                 {
-                    name: prefixForModifier + 'modifier',
+                    name: generatorConfig.prefixForModifier + 'modifier',
                     value: 'modifier'
-                },
-                {
-                    name: 'new ' + collectionSuffix,
-                    value: 'collection'
                 }
             ]
         },
@@ -51,17 +44,12 @@ function defineCreaedComponent(generatorConfig) {
 
 function describeCreatedBlock(generatorConfig) {
 
-    var prefixForElement = generatorConfig.prefixForElement,
-        prefixForModifier = generatorConfig.prefixForModifier,
-        useCollections = generatorConfig.useCollections,
-        collectionSuffix = generatorConfig.collectionSuffix;
-
     return [
         {
             type: 'list',
             name: 'putBlockInCollection',
             message: 'Should I put this Block in collection?',
-            when: useCollections,
+            when: generatorConfig.useCollections,
             choices: [
                 {
                     name: 'No',
@@ -88,24 +76,32 @@ function describeCreatedBlock(generatorConfig) {
                 {
                     name: 'col2',
                     value: 'col2'
+                },
+                new inquirer.Separator(),
+                {
+                    name: 'Create new collection',
+                    value: 'createNewCollection'
                 }
             ]
+        },
+        {
+            type: 'input',
+            name: 'newParentCollectionOfBlock',
+            when: function (answers) {
+                return answers.parentCollectionOfBlock === 'createNewCollection';
+            },
+            message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically'
         }
     ];
 }
 
 function describeCreatedElement(generatorConfig) {
 
-    var prefixForElement = generatorConfig.prefixForElement,
-        prefixForModifier = generatorConfig.prefixForModifier,
-        useCollections = generatorConfig.useCollections,
-        collectionSuffix = generatorConfig.collectionSuffix;
-
     return [
         {
             type: 'list',
             name: 'parentBlockOfElement',
-            message: selectParentBlockFor(prefixForElement + 'element'),
+            message: selectParentBlockFor(generatorConfig.prefixForElement + 'element'),
             choices: [
                 {
                     name: 'block-a',
@@ -126,23 +122,18 @@ function describeCreatedElement(generatorConfig) {
 
 function describeCreatedModifier(generatorConfig) {
 
-    var prefixForElement = generatorConfig.prefixForElement,
-        prefixForModifier = generatorConfig.prefixForModifier,
-        useCollections = generatorConfig.useCollections,
-        collectionSuffix = generatorConfig.collectionSuffix;
-
     return [
         {
             type: 'list',
             name: 'modifierFor',
-            message: 'What is this ' + prefixForModifier + 'modifier for?',
+            message: 'What is this ' + generatorConfig.prefixForModifier + 'modifier for?',
             choices: [
                 {
                     name: 'for block',
                     value: 'forBlock'
                 },
                 {
-                    name: 'for ' + prefixForElement + 'element',
+                    name: 'for ' + generatorConfig.prefixForElement + 'element',
                     value: 'forElement'
                 }
             ]
