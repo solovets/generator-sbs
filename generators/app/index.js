@@ -47,37 +47,37 @@ module.exports = simple_bem.Base.extend({
 
         console.log(JSON.stringify(getExisting, null, 4));
 
-        this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
-
-            this.answers = answers;
-
-            if (this.answers.creatingComponentType === 'block') {
-
-                this.prompt(prompting.describeCreatedBlock(generatorConfig)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
-                    done();
-                }.bind(this));
-
-            }
-
-            if (this.answers.creatingComponentType === 'element') {
-
-                this.prompt(prompting.describeCreatedElement(generatorConfig)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
-                    done();
-                }.bind(this));
-
-            }
-
-            if (this.answers.creatingComponentType === 'modifier') {
-
-                this.prompt(prompting.describeCreatedModifier(generatorConfig)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
-                    done();
-                }.bind(this));
-
-            }
-        }.bind(this));
+        // this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
+        //
+        //     this.answers = answers;
+        //
+        //     if (this.answers.creatingComponentType === 'block') {
+        //
+        //         this.prompt(prompting.describeCreatedBlock(generatorConfig)).then(function(answers) {
+        //             this.answers = helpTo.merge(this.answers, answers);
+        //             done();
+        //         }.bind(this));
+        //
+        //     }
+        //
+        //     if (this.answers.creatingComponentType === 'element') {
+        //
+        //         this.prompt(prompting.describeCreatedElement(generatorConfig)).then(function(answers) {
+        //             this.answers = helpTo.merge(this.answers, answers);
+        //             done();
+        //         }.bind(this));
+        //
+        //     }
+        //
+        //     if (this.answers.creatingComponentType === 'modifier') {
+        //
+        //         this.prompt(prompting.describeCreatedModifier(generatorConfig)).then(function(answers) {
+        //             this.answers = helpTo.merge(this.answers, answers);
+        //             done();
+        //         }.bind(this));
+        //
+        //     }
+        // }.bind(this));
     },
 
     writing: function () {
