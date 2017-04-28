@@ -1,9 +1,12 @@
 var fs = require('fs'),
     path = require('path'),
-    existingBlocks = getExistingBlocks,
+    currentStructure = getCurrentStructure,
 
     obj = {},
-    log = console.log;
+    log = console.log,
+    json = function (arg) {
+        return JSON.stringify(arg, null, 4);
+    };
 
 function checkPresenceOfSuffix(name, config) {
     return new RegExp('.+' + config.collectionSuffix + '$').test(name) && config.useCollections;
@@ -39,21 +42,42 @@ function pushBlock(generatorConfig, point, item) {
     }
 }
 
+function pushModifier(generatorConfig, point, item) {
+    if (checkPresenceOfPrefix(item, generatorConfig.prefixForModifier)) {
+        point.modifiers.push({
+            name: item
+        });
+    }
+}
+
+function getElementStructure(generatorConfig, dirPath, point) {
+    var dirContent = getDirectories(dirPath);
+
+    dirContent.forEach(function(item) {
+        pushModifier(generatorConfig, point, item);
+    });
+}
+
 function getBlockStructure(generatorConfig, dirPath, point) {
     var dirContent = getDirectories(dirPath);
 
     dirContent.forEach(function(item) {
+
         if (checkPresenceOfPrefix(item, generatorConfig.prefixForElement)) {
             point.elements.push({
                 name: item,
                 modifiers: []
             });
-        } else if (checkPresenceOfPrefix(item, generatorConfig.prefixForModifier)) {
-            point.modifiers.push({
-                name: item
-            });
+        } else {
+            pushModifier(generatorConfig, point, item);
         }
+
     });
+
+    point.elements.forEach(function(item, index) {
+        getElementStructure(generatorConfig, path.join(dirPath, item.name), point.elements[index]);
+    });
+
 }
 
 function getCollectionBlocks(generatorConfig, dirPath, point) {
@@ -64,9 +88,13 @@ function getCollectionBlocks(generatorConfig, dirPath, point) {
         pushBlock(generatorConfig, point, item);
     });
 
+    point.blocks.forEach(function(item, index, array) {
+        getBlockStructure(generatorConfig, path.join(dirPath, item.name), point.blocks[index]);
+    });
 }
 
 function getRootStructure (generatorConfig, dirPath, point) {
+
     point.blocks = [];
     point.collections = [];
 
@@ -83,26 +111,24 @@ function getRootStructure (generatorConfig, dirPath, point) {
         }
     });
 
-    point.collections.forEach(function(item) {
-        getCollectionBlocks(generatorConfig, path.join(dirPath, item.name), item);
-    });
-
     point.blocks.forEach(function(item, index, array) {
-        getBlockStructure(generatorConfig, path.join(dirPath, item.name), item);
+        getBlockStructure(generatorConfig, path.join(dirPath, item.name), point.blocks[index]);
     });
 
-    log(JSON.stringify(obj,null,4));
+    point.collections.forEach(function(item, index) {
+        getCollectionBlocks(generatorConfig, path.join(dirPath, item.name), point.collections[index]);
+    });
 }
 
-function getExistingBlocks(generatorConfig, bemDirPath) {
-
-    log(JSON.stringify(generatorConfig));
+function getCurrentStructure(generatorConfig, bemDirPath) {
 
     obj[generatorConfig.bemDirectory] = {};
 
     getRootStructure(generatorConfig, bemDirPath, obj[generatorConfig.bemDirectory]);
 
-    return 's';
+    log(json(obj));
+
+    return obj;
 }
 
-module.exports = existingBlocks;
+module.exports = currentStructure;

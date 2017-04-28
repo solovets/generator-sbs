@@ -3,5 +3,6 @@ module.exports = {
     'prefixForModifier': '--',
     'useCollections': true,
     'collectionSuffix': '-bem-collection',
-    'bemDirectory': 'styles/bem'
+    'bemDirectory': 'styles/bem',
+    'ext': 'scss'
 };
