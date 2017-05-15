@@ -8,8 +8,8 @@ var fs = require('fs'),
         return JSON.stringify(arg, null, 4);
     };
 
-function checkPresenceOfSuffix(name, config) {
-    return new RegExp('.+' + config.collectionSuffix + '$').test(name) && config.useCollections;
+function hasCollectionSuffix(config, name) {
+    return new RegExp('.+' + config.collectionSuffix + '$').test(name);
 }
 
 function checkLackOfPrefixes(name, config) {
@@ -80,6 +80,10 @@ function getBlockStructure(generatorConfig, dirPath, point) {
 
 }
 
+function getBlockStructureNew(item, index) {
+    log(index);
+}
+
 function getCollectionBlocks(generatorConfig, dirPath, point) {
 
     var dirContent = getDirectories(dirPath);
@@ -88,43 +92,56 @@ function getCollectionBlocks(generatorConfig, dirPath, point) {
         pushBlock(generatorConfig, point, item);
     });
 
-    point.blocks.forEach(function(item, index, array) {
-        getBlockStructure(generatorConfig, path.join(dirPath, item.name), point.blocks[index]);
-    });
+    // point.blocks.forEach(function(item, index, array) {
+    //     getBlockStructure(generatorConfig, path.join(dirPath, item.name), point.blocks[index]);
+    // });
 }
 
 function getRootStructure (generatorConfig, dirPath, point) {
 
+    var rootDirContent = getDirectories(dirPath);
+
     point.blocks = [];
     point.collections = [];
 
-    var dirContent = getDirectories(dirPath);
+    rootDirContent.forEach(function(item) {
 
-    dirContent.forEach(function(item) {
-        if (checkPresenceOfSuffix(item, generatorConfig)) {
-            point.collections.push({
-                name: item,
-                blocks: []
-            });
+        if (hasCollectionSuffix(generatorConfig, item)) {
+            if (generatorConfig.useCollections) {
+                point.collections.push({
+                    name: item,
+                    blocks: []
+                });
+            }
         } else {
             pushBlock(generatorConfig, point, item);
         }
     });
 
-    point.blocks.forEach(function(item, index, array) {
-        getBlockStructure(generatorConfig, path.join(dirPath, item.name), point.blocks[index]);
-    });
+    point.blocks.forEach(getBlockStructureNew);
+
+    // point.blocks.forEach(function(item, index, array) {
+    //     getBlockStructure(generatorConfig, path.join(dirPath, item.name), point.blocks[index]);
+    // });
 
     point.collections.forEach(function(item, index) {
-        getCollectionBlocks(generatorConfig, path.join(dirPath, item.name), point.collections[index]);
+
+        var collectionsDirContent = getDirectories(path.join(dirPath, item.name));
+
+        collectionsDirContent.forEach(function(item) {
+            pushBlock(generatorConfig, point.collections[index], item);
+        });
+
+        point.collections[index].blocks.forEach(getBlockStructureNew);
     });
 }
 
 function getCurrentStructure(generatorConfig, bemDirPath) {
 
-    obj[generatorConfig.bemDirectory] = {};
+    var bemDirectory = generatorConfig.bemDirectory;
 
-    getRootStructure(generatorConfig, bemDirPath, obj[generatorConfig.bemDirectory]);
+    obj.bemDirectory = {};
+    getRootStructure(generatorConfig, bemDirPath, obj.bemDirectory);
 
     log(json(obj));
 
