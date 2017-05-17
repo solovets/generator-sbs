@@ -4,7 +4,7 @@ var fs = require('fs'),
 
     obj = {},
     config,
-    allowedPrefixes = [],
+    ext,
     i,
     log = console.log,
     json = function (arg) {
@@ -37,7 +37,7 @@ function getDirectories(dirPath) {
 
 function pushBlock(dirPath, point, item) {
 
-    var fileExists = fs.existsSync(path.join(dirPath, item, item + '.' + config.ext));
+    var fileExists = fs.existsSync(path.join(dirPath, item, item + ext));
 
     if (checkLackOfPrefixes(item) && fileExists) {
         point.blocks.push({
@@ -48,51 +48,48 @@ function pushBlock(dirPath, point, item) {
     }
 }
 
-function pushModifier(point, item) {
-    if (checkPresenceOfPrefix(item, config.prefixForModifier)) {
-        point.modifiers.push({
-            name: item
-        });
-    }
-}
+function buildBlockTree(dirPath, parentComponent, allowedPrefixes, blockName) {
 
-function getElementStructure(generatorConfig, dirPath, point) {
-    var dirContent = getDirectories(dirPath);
-
-    dirContent.forEach(function(item) {
-        pushModifier(generatorConfig, point, item);
-    });
-}
-
-function getBlockStructure(generatorConfig, dirPath, point) {
-    var dirContent = getDirectories(dirPath);
-
-    dirContent.forEach(function(item) {
-
-        if (checkPresenceOfPrefix(item, generatorConfig.prefixForElement)) {
-            point.elements.push({
-                name: item,
-                modifiers: []
-            });
-        } else {
-            pushModifier(generatorConfig, point, item);
-        }
-
-    });
-
-    point.elements.forEach(function(item, index) {
-        getElementStructure(generatorConfig, path.join(dirPath, item.name), point.elements[index]);
-    });
-
-}
-
-function getBlockStructureNew(dirPath, itemObject) {
+    var itemDirPath,
+        itemDirContent,
+        modifierFilePath,
+        elementFilePath;
 
     if (allowedPrefixes.length > 0) {
+
+        itemDirPath = path.join(dirPath, parentComponent.name);
+        itemDirContent = getDirectories(itemDirPath);
+
+        itemDirContent.forEach(function (componentName) {
+
+            modifierFilePath = path.join(itemDirPath, componentName, (blockName ? blockName : '') + parentComponent.name + componentName + ext);
+            elementFilePath = path.join(itemDirPath, componentName, parentComponent.name + componentName + ext);
+
+            if (checkPresenceOfPrefix(componentName, config.prefixForElement) && allowedPrefixes.includes(config.prefixForElement) && fs.existsSync(elementFilePath)) {
+                parentComponent.elements.push({
+                    name: componentName,
+                    modifiers: []
+                });
+            }
+
+            if (checkPresenceOfPrefix(componentName, config.prefixForModifier) && allowedPrefixes.includes(config.prefixForModifier) && fs.existsSync(modifierFilePath)) {
+                parentComponent.modifiers.push({
+                    name: componentName
+                });
+            }
+        });
+
         allowedPrefixes.pop();
-        getBlockStructureNew(dirPath, itemObject);
-    } else {
-        log('ok');
+
+        if (parentComponent.hasOwnProperty('elements')) {
+            parentComponent.elements.forEach(function(element) {
+                buildBlockTree(itemDirPath, element,  [config.prefixForModifier, config.prefixForElement], parentComponent.name);
+            });
+        }
+
+
+
+
     }
 
 }
@@ -118,7 +115,11 @@ function getRootStructure (dirPath, point) {
         }
     });
 
-    //point.blocks.forEach(getBlockStructureNew.bind(null, dirPath));
+    for (i = 0; i < point.blocks.length; i++) {
+        buildBlockTree(dirPath, point.blocks[i], [config.prefixForModifier, config.prefixForElement]);
+    }
+
+
 
     point.collections.forEach(function(currentCollection) {
 
@@ -130,7 +131,7 @@ function getRootStructure (dirPath, point) {
         });
 
         for (i = 0; i < currentCollection.blocks.length; i++) {
-            getBlockStructureNew(collectionDirPath, currentCollection.blocks[i]);
+            buildBlockTree(collectionDirPath, currentCollection.blocks[i], [config.prefixForModifier, config.prefixForElement]);
         }
     });
 }
@@ -138,15 +139,9 @@ function getRootStructure (dirPath, point) {
 function getCurrentStructure(generatorConfig, bemDirPath) {
 
     config = generatorConfig;
-
-    allowedPrefixes = [
-        config.prefixForModifier,
-        config.prefixForElement
-    ];
+    ext = '.' + config.ext;
 
     getRootStructure(bemDirPath, obj);
-
-    log(json(obj));
 
     return obj;
 }

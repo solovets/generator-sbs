@@ -1,7 +1,7 @@
 var selectParentBlockFor = function (component) {
     return 'Please select parent block of ' + component;
 };
-var existingBlocks = require('./existing-blocks');
+var existingBlocks = require('./current-structure');
 
 var inquirer = require('inquirer');
 
@@ -42,7 +42,7 @@ function defineCreaedComponent(generatorConfig) {
     ];
 }
 
-function describeCreatedBlock(generatorConfig) {
+function describeCreatedBlock(generatorConfig, currentStructure) {
 
     return [
         {
@@ -68,21 +68,26 @@ function describeCreatedBlock(generatorConfig) {
             when: function(answer) {
                 return answer.putBlockInCollection;
             },
-            choices: [
-                {
-                    name: 'col1',
-                    value: 'col1'
-                },
-                {
-                    name: 'col2',
-                    value: 'col2'
-                },
-                new inquirer.Separator(),
-                {
-                    name: 'Create new collection',
-                    value: 'createNewCollection'
-                }
-            ]
+            choices: function () {
+                var choicesArray = [];
+
+                currentStructure.collections.forEach(function (collection) {
+                    choicesArray.push({
+                        name: collection.name,
+                        value: collection.name
+                    });
+                });
+
+                choicesArray.push(
+                    new inquirer.Separator(),
+                    {
+                        name: 'Create new collection',
+                        value: 'createNewCollection'
+                    }
+                );
+
+                return choicesArray;
+            }
         },
         {
             type: 'input',

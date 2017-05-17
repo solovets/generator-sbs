@@ -4,10 +4,15 @@ var simple_bem = require('yeoman-generator'),
     path = require('path'),
     async = require('async'),
 
+    log = console.log,
+    json = function (obj) {
+        return JSON.stringify(obj, null, 4);
+    },
+
     prompting = require('../../utils/prompting'),
     helpTo = require('../../utils/helpers'),
     isBemDirectoryExists = require('../../utils/isBemDirectoryExists'),
-    existingBlocks = require('../../utils/existing-blocks'),
+    getCurrentStructure = require('../../utils/current-structure'),
     generatorConfigDefaults = require('../../utils/generatorConfigDefaults');
 
 module.exports = simple_bem.Base.extend({
@@ -28,14 +33,12 @@ module.exports = simple_bem.Base.extend({
 
         var done = this.async(),
             bemDirPath = path.join(process.cwd(), this.config.get('bemDirectory')),
-            getExisting;
+            currentStructure;
 
 
         generatorConfig = this.config.getAll();
         isBemDirectoryExists(bemDirPath);
-        getExisting = existingBlocks(generatorConfig, bemDirPath);
-
-        //nsole.log(JSON.stringify(generatorConfig, null, 4));
+        currentStructure = getCurrentStructure(generatorConfig, bemDirPath);
 
         this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
 
@@ -43,7 +46,7 @@ module.exports = simple_bem.Base.extend({
 
             if (this.answers.creatingComponentType === 'block') {
 
-                this.prompt(prompting.describeCreatedBlock(generatorConfig)).then(function(answers) {
+                this.prompt(prompting.describeCreatedBlock(generatorConfig, currentStructure)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
                     done();
                 }.bind(this));
