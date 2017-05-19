@@ -12,6 +12,36 @@ var prompting = {
     describeCreatedModifier: describeCreatedModifier
 };
 
+function getBlocks(currentStructure, useCollections) {
+    var choicesArray = [];
+
+    currentStructure.blocks.forEach(function(block) {
+        choicesArray.push({
+            name: block.name,
+            value: {
+                blockName: block.name,
+                collectionName: false
+            }
+        });
+    });
+
+    if (useCollections) {
+        currentStructure.collections.forEach(function(collection) {
+            collection.blocks.forEach(function(block) {
+                choicesArray.push({
+                    name: block.name + ' @ ' + collection.name,
+                    value: {
+                        blockName: block.name,
+                        collectionName: collection.name
+                    }
+                });
+            });
+        });
+    }
+
+    return choicesArray;
+}
+
 function defineCreaedComponent(generatorConfig) {
 
     return [
@@ -82,7 +112,7 @@ function describeCreatedBlock(generatorConfig, currentStructure) {
                     new inquirer.Separator(),
                     {
                         name: 'Create new collection',
-                        value: 'createNewCollection'
+                        value: false
                     }
                 );
 
@@ -93,39 +123,26 @@ function describeCreatedBlock(generatorConfig, currentStructure) {
             type: 'input',
             name: 'newParentCollectionOfBlock',
             when: function (answers) {
-                return answers.parentCollectionOfBlock === 'createNewCollection';
+                return answers.parentCollectionOfBlock === false;
             },
             message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically'
         }
     ];
 }
 
-function describeCreatedElement(generatorConfig) {
+function describeCreatedElement(generatorConfig, currentStructure) {
 
     return [
         {
             type: 'list',
             name: 'parentBlockOfElement',
             message: selectParentBlockFor(generatorConfig.prefixForElement + 'element'),
-            choices: [
-                {
-                    name: 'block-a',
-                    value: 'block-a'
-                },
-                {
-                    name: 'block-b',
-                    value: 'block-b'
-                },
-                {
-                    name: 'block-c',
-                    value: 'block-c'
-                }
-            ]
+            choices: getBlocks(currentStructure, generatorConfig.useCollections)
         }
     ];
 }
 
-function describeCreatedModifier(generatorConfig) {
+function describeCreatedModifier(generatorConfig, currentStructure) {
 
     return [
         {
@@ -142,6 +159,54 @@ function describeCreatedModifier(generatorConfig) {
                     value: 'forElement'
                 }
             ]
+        },
+        {
+            type: 'list',
+            name: 'parentBlockOfModifier',
+            message: function (answer) {
+                var str = answer.modifierFor === 'forElement' ? ' that contains ' + generatorConfig.prefixForElement + 'element' : '';
+
+                return 'Please define block' + str;
+            },
+            choices: getBlocks(currentStructure, generatorConfig.useCollections)
+        },
+        {
+            type: 'list',
+            name: 'parentElementOfModifier',
+            message: 'Please define parent ' + generatorConfig.prefixForElement + 'element of ' + generatorConfig.prefixForModifier + 'modifier',
+            when: function(answer) {
+                return answer.modifierFor === 'forElement';
+            },
+            choices: function(answer) {
+
+                var blocksArray,
+                    blockPoint,
+                    collectionPoint,
+                    choicesArray = [];
+
+                if (answer.parentBlockOfModifier.collectionName === false)  {
+                    blocksArray = currentStructure.blocks;
+                } else {
+                    collectionPoint = currentStructure.collections.filter(function (collection) {
+                        return collection.name === answer.parentBlockOfModifier.collectionName;
+                    });
+                    blocksArray = collectionPoint[0].blocks;
+                    //blocksArray = currentStructure.collections[answer.parentBlockOfModifier.collectionName].blocks;
+                }
+
+                blockPoint = blocksArray.filter(function(item) {
+                    return item.name === answer.parentBlockOfModifier.blockName;
+                });
+
+                blockPoint[0].elements.forEach(function (element) {
+                    choicesArray.push({
+                        name: element.name,
+                        value: element.name
+                    });
+                });
+
+                return choicesArray;
+            }
         }
     ]
 }

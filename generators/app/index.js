@@ -55,7 +55,7 @@ module.exports = simple_bem.Base.extend({
 
             if (this.answers.creatingComponentType === 'element') {
 
-                this.prompt(prompting.describeCreatedElement(generatorConfig)).then(function(answers) {
+                this.prompt(prompting.describeCreatedElement(generatorConfig, currentStructure)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
                     done();
                 }.bind(this));
@@ -64,7 +64,7 @@ module.exports = simple_bem.Base.extend({
 
             if (this.answers.creatingComponentType === 'modifier') {
 
-                this.prompt(prompting.describeCreatedModifier(generatorConfig)).then(function(answers) {
+                this.prompt(prompting.describeCreatedModifier(generatorConfig, currentStructure)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
                     done();
                 }.bind(this));
@@ -74,6 +74,16 @@ module.exports = simple_bem.Base.extend({
     },
 
     writing: function () {
-        console.log( JSON.stringify(this.answers, null, 4) );
+        log(this.sourceRoot());
+        log(this.destinationRoot());
+
+        switch (this.answers.creatingComponentType) {
+            case 'block':
+                break;
+            case 'element':
+                break;
+            case 'modifier':
+                break;
+        }
     }
 });
