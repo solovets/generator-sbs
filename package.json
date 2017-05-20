@@ -29,5 +29,8 @@
     "async": "^2.1.4",
     "inquirer": "^1.2.3",
     "yeoman-generator": "^0.24.1"
+  },
+  "devDependencies": {
+    "underscore.string": "^3.3.4"
   }
 }

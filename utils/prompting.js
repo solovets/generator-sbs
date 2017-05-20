@@ -12,6 +12,14 @@ var prompting = {
     describeCreatedModifier: describeCreatedModifier
 };
 
+function validation(name) {
+    // if (name === '') {
+    //     return 'Name Can\'t be empty!';
+    // }
+
+    return true;
+}
+
 function getBlocks(currentStructure, useCollections) {
     var choicesArray = [];
 
@@ -67,7 +75,11 @@ function defineCreaedComponent(generatorConfig) {
         {
             type: 'input',
             name: 'creatingComponentName',
-            message: 'Please define name:'
+            message: 'Please define name:',
+            validate: function (value, r) {
+                console.log(value, answer);
+                //validation(value);
+            }
         }
     ];
 }
