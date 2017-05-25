@@ -24,7 +24,6 @@ module.exports = simple_bem.Base.extend({
 
         generatorConfigKeys.forEach(function(item, index, array) {
             if (generatorConfig.hasOwnProperty(item) === false) {
-                console.log('empty');
                 this.config.set(item, generatorConfigDefaults[item]);
             }
         }, this);
