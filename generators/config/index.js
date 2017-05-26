@@ -14,8 +14,7 @@ module.exports = simple_bem.Base.extend({
 
         var done = this.async();
 
-
-        this.prompt(prompting()).then(function(answers) {
+        this.prompt(prompting(this.destinationRoot())).then(function(answers) {
 
             this.answers = answers;
             done();

@@ -1,4 +1,7 @@
-var prompting = function () {
+var path = require('path');
+var isBemDirectoryExists = require('./isBemDirectoryExists');
+
+var prompting = function (dest) {
     return [
         {
             type: 'list',
@@ -31,7 +34,7 @@ var prompting = function () {
         },
         {
             type: 'input',
-            name: 'collectionsSuffix',
+            name: 'collectionSuffix',
             message: 'Please define collection suffix:',
             default: '--bem-collection',
             when: function (ansers) {
@@ -56,11 +59,14 @@ var prompting = function () {
             type: 'input',
             name: 'bemDirectory',
             message: 'Plase define bem root directory',
-            default: 'src/styles/bem'
+            default: 'src/styles/bem',
+            validate: function (input) {
+                return isBemDirectoryExists(path.join(dest, input), true);
+            }
         },
         {
             type: 'list',
-            name: 'extension',
+            name: 'ext',
             message: 'Which extension of created files do you prefer?',
             choices: [
                 {

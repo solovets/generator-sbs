@@ -12,10 +12,12 @@ var prompting = {
     describeCreatedModifier: describeCreatedModifier
 };
 
-function validation(name) {
-    // if (name === '') {
-    //     return 'Name Can\'t be empty!';
-    // }
+function checkComplianceWithNamingConvention(input, type, generatorConfig) {
+    var namingConvention = generatorConfig.namingConvention,
+        prefixForElement = generatorConfig.prefixForElement,
+        pefixForModifier = generatorConfig.prefixForModifier;
+
+    //switch (namingConvention) {}
 
     return true;
 }
@@ -28,7 +30,7 @@ function getBlocks(currentStructure, useCollections) {
             name: block.name,
             value: {
                 blockName: block.name,
-                collectionName: false
+                collectionName: ''
             }
         });
     });
@@ -76,9 +78,20 @@ function defineCreaedComponent(generatorConfig) {
             type: 'input',
             name: 'creatingComponentName',
             message: 'Please define name:',
-            validate: function (value, r) {
-                console.log(value, answer);
-                //validation(value);
+            filter: function (input) {
+                return input.replace(/^(-|_)+/, '').replace(/(-|_)+$/, '').trim();
+            },
+            validate: function (input, answers) {
+
+                if (!/^[_a-zA-Z0-9-]+$/.test(input)) {
+                    return 'Allowed characters: letters A-Z, numbers 0-9, hyphens, underscores';
+                }
+
+                if (answers.creatingComponentType === 'block' && !/^[a-zA-Z]+/.test(input)) {
+                    return 'Block name shout starts with letters A-Z';
+                }
+
+                return true;
             }
         }
     ];
@@ -88,20 +101,11 @@ function describeCreatedBlock(generatorConfig, currentStructure) {
 
     return [
         {
-            type: 'list',
+            type: 'confirm',
             name: 'putBlockInCollection',
             message: 'Should I put this Block in collection?',
             when: generatorConfig.useCollections,
-            choices: [
-                {
-                    name: 'No',
-                    value: false
-                },
-                {
-                    name: 'Yes',
-                    value: true
-                }
-            ]
+            default: false
         },
         {
             type: 'list',
@@ -137,7 +141,20 @@ function describeCreatedBlock(generatorConfig, currentStructure) {
             when: function (answers) {
                 return answers.parentCollectionOfBlock === false;
             },
-            message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically'
+            message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically',
+            filter: function (input) {
+                input = input.replace(new RegExp(generatorConfig.collectionSuffix + '$'), '');
+
+                return input;
+            },
+            validate: function (input) {
+
+                if (/^[]+$/.test(input)) {
+                    return 'Unexpected characters: \\ / : * ? " < > | \' `';
+                }
+
+                return true;
+            }
         }
     ];
 }
