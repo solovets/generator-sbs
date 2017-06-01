@@ -1,7 +1,7 @@
 'use strict';
 var simple_bem = require('yeoman-generator'),
     async = require('async'),
-    namingConvention = require('../../utils/namingConventions'),
+    namingConventions = require('../../utils/namingConventions'),
     prompting = require('../../utils/configPrompting'),
     log = console.log,
     json = function (obj) {
@@ -30,8 +30,8 @@ module.exports = simple_bem.Base.extend({
             this.config.set(key, answers[key]);
         }, this);
 
-        this.config.set('prefixForElement', namingConvention[answers.namingConvention].prefixForElement);
-        this.config.set('prefixForModifier', namingConvention[answers.namingConvention].prefixForModifier);
+        this.config.set('prefixForElement', namingConventions[answers.namingConvention].prefixForElement);
+        this.config.set('prefixForModifier', namingConventions[answers.namingConvention].prefixForModifier);
 
         this.config.save();
     },

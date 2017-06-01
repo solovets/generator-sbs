@@ -2,6 +2,7 @@ var selectParentBlockFor = function (component) {
     return 'Please select parent block of ' + component;
 };
 var existingBlocks = require('./current-structure');
+var filter = require('./filter-name.js');
 
 var inquirer = require('inquirer');
 
@@ -79,7 +80,8 @@ function defineCreaedComponent(generatorConfig) {
             name: 'creatingComponentName',
             message: 'Please define name:',
             filter: function (input) {
-                return input.replace(/^(-|_)+/, '').replace(/(-|_)+$/, '').trim();
+                return filter(generatorConfig.namingConvention, input);
+                //return input.replace(/^(-|_)+/, '').replace(/(-|_)+$/, '').trim();
             },
             validate: function (input, answers) {
 
