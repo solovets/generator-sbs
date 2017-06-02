@@ -4,6 +4,8 @@ var simple_bem = require('yeoman-generator'),
     path = require('path'),
     async = require('async'),
     mkdirp = require('mkdirp'),
+    chalk = require('chalk'),
+    InjectString = require('inject-string'),
 
     log = console.log,
     json = function (obj) {
@@ -46,14 +48,14 @@ module.exports = simple_bem.Base.extend({
             this.answers = answers;
 
             if (this.answers.creatingComponentType === 'block') {
-                this.prompt(prompting.describeCreatedBlock(generatorConfig, currentStructure)).then(function(answers) {
+                this.prompt(prompting.describeCreatedBlock(generatorConfig, currentStructure, this.answers)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
                     done();
                 }.bind(this));
             }
 
             if (this.answers.creatingComponentType === 'element') {
-                this.prompt(prompting.describeCreatedElement(generatorConfig, currentStructure)).then(function(answers) {
+                this.prompt(prompting.describeCreatedElement(generatorConfig, currentStructure, this.answers)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
                     done();
                 }.bind(this));
@@ -61,7 +63,7 @@ module.exports = simple_bem.Base.extend({
 
             if (this.answers.creatingComponentType === 'modifier') {
 
-                this.prompt(prompting.describeCreatedModifier(generatorConfig, currentStructure)).then(function(answers) {
+                this.prompt(prompting.describeCreatedModifier(generatorConfig, currentStructure, this.answers)).then(function(answers) {
                     this.answers = helpTo.merge(this.answers, answers);
                     done();
                 }.bind(this));
@@ -72,6 +74,17 @@ module.exports = simple_bem.Base.extend({
 
     writing: function () {
 
+        switch (this.answers.creatingComponentType) {
+            case 'element':
+                this.answers.creatingComponentName = prefixForElement + this.answers.creatingComponentName;
+                break;
+            case 'modifier':
+                this.answers.creatingComponentName = prefixForModifier + this.answers.creatingComponentName;
+                break;
+        }
+
+        this.answers.fileName = this.answers.creatingComponentName + '.' + this.config.get('ext');
+
         var config = this.config.getAll(),
             prefixForElement = config.prefixForElement,
             prefixForModifier = config.prefixForModifier,
@@ -80,12 +93,13 @@ module.exports = simple_bem.Base.extend({
             templatePath = answers.creatingComponentType + '.tmpl',
             root = path.join(this.destinationRoot(), config.bemDirectory),
             destPath,
-            ext = '.' + config.ext;
-        
+            parentPath,
+            fileName = answers.fileName;
+
         function getDestPathForBlock() {
 
             var destPathForBlock,
-                blockDir = path.join(creatingComponentName, creatingComponentName + ext);
+                blockDir = path.join(creatingComponentName, fileName);
 
             if (answers.putBlockInCollection) {
 
@@ -103,27 +117,21 @@ module.exports = simple_bem.Base.extend({
 
         function getDestPathForElement() {
 
-            creatingComponentName = prefixForElement + creatingComponentName;
-            answers.creatingComponentName = creatingComponentName;
+            var elementDir = path.join(creatingComponentName, answers.parentBlockOfElement.blockName + fileName);
 
-            var elementDir = path.join(creatingComponentName, answers.parentBlockOfElement.blockName + creatingComponentName + ext);
-
-            return path.join(root, answers.parentBlockOfElement.collectionName, answers.parentBlockOfElement.blockName, elementDir);;
+            return path.join(root, answers.parentBlockOfElement.collectionName, answers.parentBlockOfElement.blockName, elementDir);
         }
 
         function getDestPathForModifier() {
-
-            creatingComponentName = prefixForModifier + creatingComponentName;
-            answers.creatingComponentName = creatingComponentName;
 
             var modifierDir;
 
             switch (answers.modifierFor) {
                 case 'forBlock':
-                    modifierDir = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + creatingComponentName + ext);
+                    modifierDir = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + fileName);
                     break;
                 case 'forElement':
-                    modifierDir = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + answers.parentElementOfModifier + creatingComponentName + ext);
+                    modifierDir = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + answers.parentElementOfModifier + fileName);
                     break;
             }
 
@@ -143,12 +151,29 @@ module.exports = simple_bem.Base.extend({
         }
 
 
-        log(json(answers));
+        if (fs.existsSync(destPath)) {
+            log(chalk.red('Error:\n' + destPath + ' already exists'));
+            process.exit(1);
+        } else {
+            // this.fs.copyTpl(
+            //     this.templatePath(templatePath),
+            //     this.destinationPath(destPath),
+            //     answers
+            // );
 
-        this.fs.copyTpl(
-            this.templatePath(templatePath),
-            this.destinationPath(destPath),
-            answers
-        );
+            fs.readFile(path.join(root, 'abc.txt'), 'utf8', function (err, data) {
+                if (err) {
+                    throw err;
+                }
+                var content = new InjectString(data, {
+                    newlines: true,
+                    delimiters: ['//<=', '=>'],
+                    tag: 'bemblock'
+                });
+                content.append('222');
+
+                fs.writeFileSync(path.join(root, 'abc.txt'), content, 'utf8');
+            });
+        }
     }
 });

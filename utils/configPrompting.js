@@ -1,7 +1,16 @@
 var path = require('path');
+var fs = require('fs');
+var _ = require('underscore.string');
+var filter = require('./filter-name.js');
+var validate = require('./validate-name.js');
 var isBemDirectoryExists = require('./isBemDirectoryExists');
 
-var prompting = function (dest) {
+prompting = {
+    general: general,
+    rootStyles: rootStyles
+}
+
+function general (dest) {
     return [
         {
             type: 'list',
@@ -41,17 +50,16 @@ var prompting = function (dest) {
                 return ansers.useCollections;
             },
             filter: function (input) {
-                if (!/^--/.test(input)) {
-                    input = '--' + input;
-                }
+                input = _.trim(input, '-_');
+                input = '--' + input;
 
                 return input;
             },
             validate: function (input) {
-                if (/^[\-\_a-zA-Z0-9]+$/.test(input)) {
+                if (/^[_a-zA-Z0-9-]+$/.test(input)) {
                     return true;
                 } else {
-                    return 'Allowed characters: dash, underscore, latin letters A-Z, numbers 0-9';
+                    return 'Allowed characters: 0-9, A-Z, dash and underscore';
                 }
             }
         },
@@ -96,20 +104,68 @@ var prompting = function (dest) {
             name: 'custonExtension',
             message: 'Please define extension:',
             when: function (answers) {
-                return answers.extension === false;
+                return answers.ext === false;
             },
             filter: function (input) {
-                return input.replace(/^\./, '').replace(/\.$/, '');
+                return _.trim(input, '.');
             },
             validate: function (input) {
                 if (/^[\.a-zA-Z0-9]+$/.test(input)) {
                     return true;
                 } else {
-                    return 'Allowed characters: dot, latin letters A-Z, numbers 0-9';
+                    return 'Allowed characters: dot, A-Z, 0-9';
                 }
             }
         }
     ];
-};
+}
+
+function rootStyles(dest, previousAnswers) {
+
+    var ext = previousAnswers.ext === false ? previousAnswers.custonExtension : previousAnswers.ext;
+
+    return [
+        {
+            type: 'input',
+            name: 'rootStylesFile',
+            message: 'Please define \"root\" styles file to @import blocks in it (will be created if doesn\'t exist)',
+            default: function () {
+                return 'styles.' + (previousAnswers.ext === false ? previousAnswers.custonExtension : previousAnswers.ext);
+            },
+            filter: function (input) {
+
+                var fileName = input;
+
+                if (!new RegExp('\.' + ext + '$').test(input)) {
+                    fileName = input + '.' + ext;
+                }
+                if (fs.existsSync(path.join(dest, previousAnswers.bemDirectory, fileName))) {
+                    return fileName;
+                } else {
+                    input = filter(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$'), ''), 'root', null);
+                    return input + '.' + ext;
+                }
+            },
+            validate: function (input, answers) {
+
+                var pathToRootStyles = path.join(dest, previousAnswers.bemDirectory, input),
+                    valid;
+
+                if (fs.existsSync(pathToRootStyles)) {
+                    return true;
+                } else {
+                    valid = validate(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$')), 'root', null);
+
+                    if (valid === true) {
+                        answers.createRootStylesFile = true;
+                    }
+
+                    return valid;
+                }
+            }
+
+        }
+    ]
+}
 
 module.exports = prompting;

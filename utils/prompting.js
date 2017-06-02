@@ -2,9 +2,12 @@ var selectParentBlockFor = function (component) {
     return 'Please select parent block of ' + component;
 };
 var existingBlocks = require('./current-structure');
+
 var filter = require('./filter-name.js');
+var validate = require('./validate-name.js');
 
 var inquirer = require('inquirer');
+var _ = require('underscore.string');
 
 var prompting = {
     defineCreatedComponent: defineCreaedComponent,
@@ -12,16 +15,6 @@ var prompting = {
     describeCreatedElement: describeCreatedElement,
     describeCreatedModifier: describeCreatedModifier
 };
-
-function checkComplianceWithNamingConvention(input, type, generatorConfig) {
-    var namingConvention = generatorConfig.namingConvention,
-        prefixForElement = generatorConfig.prefixForElement,
-        pefixForModifier = generatorConfig.prefixForModifier;
-
-    //switch (namingConvention) {}
-
-    return true;
-}
 
 function getBlocks(currentStructure, useCollections) {
     var choicesArray = [];
@@ -53,6 +46,21 @@ function getBlocks(currentStructure, useCollections) {
     return choicesArray;
 }
 
+function askName(convention, type, separator) {
+    return {
+        type: 'input',
+        name: 'creatingComponentName',
+        message: 'Please define name:',
+        filter: function (input) {
+            return filter(convention, input, type, separator);
+        },
+        validate: function (input, answers) {
+
+            return validate(convention, input, type, separator);
+        }
+    }
+}
+
 function defineCreaedComponent(generatorConfig) {
 
     return [
@@ -74,34 +82,14 @@ function defineCreaedComponent(generatorConfig) {
                     value: 'modifier'
                 }
             ]
-        },
-        {
-            type: 'input',
-            name: 'creatingComponentName',
-            message: 'Please define name:',
-            filter: function (input) {
-                return filter(generatorConfig.namingConvention, input);
-                //return input.replace(/^(-|_)+/, '').replace(/(-|_)+$/, '').trim();
-            },
-            validate: function (input, answers) {
-
-                if (!/^[_a-zA-Z0-9-]+$/.test(input)) {
-                    return 'Allowed characters: letters A-Z, numbers 0-9, hyphens, underscores';
-                }
-
-                if (answers.creatingComponentType === 'block' && !/^[a-zA-Z]+/.test(input)) {
-                    return 'Block name shout starts with letters A-Z';
-                }
-
-                return true;
-            }
         }
     ];
 }
 
-function describeCreatedBlock(generatorConfig, currentStructure) {
+function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers) {
 
     return [
+        askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
             type: 'confirm',
             name: 'putBlockInCollection',
@@ -145,14 +133,16 @@ function describeCreatedBlock(generatorConfig, currentStructure) {
             },
             message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically',
             filter: function (input) {
-                input = input.replace(new RegExp(generatorConfig.collectionSuffix + '$'), '');
+                input = input.replace(new RegExp(generatorConfig.collectionSuffix + '$', 'i'), '');
+                input = _.ltrim(input);
+                input = _.rtrim(input, '-_');
 
                 return input;
             },
             validate: function (input) {
 
-                if (/^[]+$/.test(input)) {
-                    return 'Unexpected characters: \\ / : * ? " < > | \' `';
+                if (!/^[_a-zA-Z0-9-]+$/.test(input)) {
+                    return 'Allowed characters: 0-9, A-Z, dash and underscore';
                 }
 
                 return true;
@@ -161,9 +151,10 @@ function describeCreatedBlock(generatorConfig, currentStructure) {
     ];
 }
 
-function describeCreatedElement(generatorConfig, currentStructure) {
+function describeCreatedElement(generatorConfig, currentStructure, previousAnswers) {
 
     return [
+        askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
             type: 'list',
             name: 'parentBlockOfElement',
@@ -173,9 +164,10 @@ function describeCreatedElement(generatorConfig, currentStructure) {
     ];
 }
 
-function describeCreatedModifier(generatorConfig, currentStructure) {
+function describeCreatedModifier(generatorConfig, currentStructure, previousAnswers) {
 
     return [
+        askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
             type: 'list',
             name: 'modifierFor',
