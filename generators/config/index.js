@@ -38,6 +38,7 @@ module.exports = simple_bem.Base.extend({
 
         this.config.set('prefixForElement', namingConventions[answers.namingConvention].prefixForElement);
         this.config.set('prefixForModifier', namingConventions[answers.namingConvention].prefixForModifier);
+        this.config.set('bemDirectoryPath', path.join(this.destinationRoot(), answers.bemDirectory));
 
         if (answers.ext === false) {
             this.config.set('ext', answers.custonExtension);
@@ -53,7 +54,7 @@ module.exports = simple_bem.Base.extend({
         if (this.answers.createRootStylesFile === true) {
             this.fs.copyTpl(
                 this.templatePath('root.tmpl'),
-                this.destinationPath(path.join(this.destinationRoot(), this.answers.bemDirectory, this.answers.rootStylesFile)),
+                this.destinationPath(path.join(this.config.get('bemDirectoryPath'), this.config.get('rootStylesFile'))),
                 {}
             );
         }

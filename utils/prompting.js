@@ -2,7 +2,7 @@ var selectParentBlockFor = function (component) {
     return 'Please select parent block of ' + component;
 };
 var existingBlocks = require('./current-structure');
-
+var path = require('path');
 var filter = require('./filter-name.js');
 var validate = require('./validate-name.js');
 
@@ -91,11 +91,24 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
     return [
         askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
-            type: 'confirm',
+            type: 'list',
             name: 'putBlockInCollection',
             message: 'Should I put this Block in collection?',
-            when: generatorConfig.useCollections,
-            default: false
+            when: function (answers) {
+                answers.pathToComponent = '';
+                answers.importfrom = path.join(generatorConfig.bemDirectoryPath, generatorConfig.rootStylesFile);
+                return generatorConfig.useCollections;
+            },
+            choices: [
+                {
+                    name: 'No',
+                    value: false
+                },
+                {
+                    name: 'Yes',
+                    value: true
+                }
+            ]
         },
         {
             type: 'list',

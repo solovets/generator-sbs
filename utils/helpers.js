@@ -1,5 +1,6 @@
 var helpers = {
-    merge: merge
+    merge: merge,
+    capitalize: capitalize
 };
 
 // This function merge object {a} and object {b}
@@ -13,6 +14,10 @@ function merge(a, b) {
     }
 
     return a;
+}
+
+function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 module.exports = helpers;

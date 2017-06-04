@@ -74,6 +74,8 @@ module.exports = simple_bem.Base.extend({
 
     writing: function () {
 
+        log(json(this.answers));
+
         switch (this.answers.creatingComponentType) {
             case 'element':
                 this.answers.creatingComponentName = prefixForElement + this.answers.creatingComponentName;
@@ -167,7 +169,7 @@ module.exports = simple_bem.Base.extend({
                 var content = new InjectString(data, {
                     newlines: true,
                     delimiters: ['//<=', '=>'],
-                    tag: 'bem' + answers.creatingComponentType.charAt(0).toUpperCase() + answers.creatingComponentType.slice(1) + 's'
+                    tag: 'bem' + helpTo.capitalize(answers.creatingComponentType) + 's'
                 });
                 content.append('@import "' + component.split(path.sep).join('/') + '";');
 
