@@ -94,12 +94,13 @@ module.exports = simple_bem.Base.extend({
             root = path.join(this.destinationRoot(), config.bemDirectory),
             destPath,
             parentPath,
+			component,
             fileName = answers.fileName;
 
         function getDestPathForBlock() {
 
-            var destPathForBlock,
-                blockDir = path.join(creatingComponentName, fileName);
+            var destPathForBlock;
+			component = path.join(creatingComponentName, fileName);
 
             if (answers.putBlockInCollection) {
 
@@ -108,34 +109,32 @@ module.exports = simple_bem.Base.extend({
                     mkdirp.sync(path.join(root, answers.parentCollectionOfBlock));
                 }
 
-                destPathForBlock = path.join(root, answers.parentCollectionOfBlock, blockDir);
+                destPathForBlock = path.join(root, answers.parentCollectionOfBlock, component);
             } else {
-                destPathForBlock = path.join(root, blockDir);
+                destPathForBlock = path.join(root, component);
             }
             return destPathForBlock;
         }
 
         function getDestPathForElement() {
 
-            var elementDir = path.join(creatingComponentName, answers.parentBlockOfElement.blockName + fileName);
+            component = path.join(creatingComponentName, answers.parentBlockOfElement.blockName + fileName);
 
-            return path.join(root, answers.parentBlockOfElement.collectionName, answers.parentBlockOfElement.blockName, elementDir);
+            return path.join(root, answers.parentBlockOfElement.collectionName, answers.parentBlockOfElement.blockName, component);
         }
 
         function getDestPathForModifier() {
 
-            var modifierDir;
-
             switch (answers.modifierFor) {
                 case 'forBlock':
-                    modifierDir = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + fileName);
+                    component = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + fileName);
                     break;
                 case 'forElement':
-                    modifierDir = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + answers.parentElementOfModifier + fileName);
+                    component = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + answers.parentElementOfModifier + fileName);
                     break;
             }
 
-            return path.join(root, answers.parentBlockOfModifier.collectionName, answers.parentBlockOfModifier.blockName, modifierDir);
+            return path.join(root, answers.parentBlockOfModifier.collectionName, answers.parentBlockOfModifier.blockName, component);
         }
 
         switch (answers.creatingComponentType) {
@@ -155,11 +154,11 @@ module.exports = simple_bem.Base.extend({
             log(chalk.red('Error:\n' + destPath + ' already exists'));
             process.exit(1);
         } else {
-            // this.fs.copyTpl(
-            //     this.templatePath(templatePath),
-            //     this.destinationPath(destPath),
-            //     answers
-            // );
+//			this.fs.copyTpl(
+//				this.templatePath(templatePath),
+//                this.destinationPath(destPath),
+//                answers
+//			);
 
             fs.readFile(path.join(root, 'abc.txt'), 'utf8', function (err, data) {
                 if (err) {
@@ -168,9 +167,9 @@ module.exports = simple_bem.Base.extend({
                 var content = new InjectString(data, {
                     newlines: true,
                     delimiters: ['//<=', '=>'],
-                    tag: 'bemblock'
+                    tag: 'bem' + answers.creatingComponentType.charAt(0).toUpperCase() + answers.creatingComponentType.slice(1) + 's'
                 });
-                content.append('222');
+                content.append('@import "' + component.split(path.sep).join('/') + '";');
 
                 fs.writeFileSync(path.join(root, 'abc.txt'), content, 'utf8');
             });
