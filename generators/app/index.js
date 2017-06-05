@@ -122,14 +122,27 @@ module.exports = simple_bem.Base.extend({
 
             switch (answers.modifierFor) {
                 case 'forBlock':
+					answers.exportTo = path.join(
+						root,
+						answers.parentBlockOfModifier.collectionName,
+						answers.parentBlockOfModifier.blockName,
+						answers.parentBlockOfModifier.blockName + '.' + config.ext
+					);
                     component = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + fileName);
                     break;
                 case 'forElement':
+					answers.exportTo = path.join(
+						root,
+						answers.parentBlockOfModifier.collectionName,
+						answers.parentBlockOfModifier.blockName,
+						answers.parentElementOfModifier,
+						answers.parentElementOfModifier + '.' + config.ext
+					);
                     component = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + answers.parentElementOfModifier + fileName);
                     break;
             }
 
-            return path.join(root, answers.parentBlockOfModifier.collectionName, answers.parentBlockOfModifier.blockName, component);
+            return path.join(root, answers.parentBlockOfModifier.collectionName, answers.parentBlockOfModifier.blockName, answers.parentElementOfModifier, component);
         }
 
         switch (answers.creatingComponentType) {
@@ -149,11 +162,11 @@ module.exports = simple_bem.Base.extend({
             log(chalk.red('Error:\n' + destPath + ' already exists'));
             process.exit(1);
         } else {
-//			this.fs.copyTpl(
-//				this.templatePath(templatePath),
-//                this.destinationPath(destPath),
-//                answers
-//			);
+			this.fs.copyTpl(
+				this.templatePath(templatePath),
+                this.destinationPath(destPath),
+                answers
+			);
 
             fs.readFile(answers.exportTo, 'utf8', function (err, data) {
                 if (err) {

@@ -102,7 +102,7 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             choices: [
                 {
                     name: 'No',
-                    value: ''
+                    value: false
                 },
                 {
                     name: 'Yes',
@@ -154,7 +154,7 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
                     answers.pathToComponent = answers.parentCollectionOfBlock;
                 }
 
-                return answers.parentCollectionOfBlock;
+                return answers.parentCollectionOfBlock === false;
             },
             message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically',
             filter: function (input) {
@@ -224,28 +224,28 @@ function describeCreatedModifier(generatorConfig, currentStructure, previousAnsw
             type: 'list',
             name: 'parentElementOfModifier',
             message: 'Please define parent ' + generatorConfig.prefixForElement + 'element of ' + generatorConfig.prefixForModifier + 'modifier',
-            when: function(answer) {
-                return answer.modifierFor === 'forElement';
+            when: function(answers) {
+				answers.parentElementOfModifier = '';
+                return answers.modifierFor === 'forElement';
             },
-            choices: function(answer) {
+            choices: function(answers) {
 
                 var blocksArray,
                     blockPoint,
                     collectionPoint,
                     choicesArray = [];
 
-                if (answer.parentBlockOfModifier.collectionName === false)  {
+                if (answers.parentBlockOfModifier.collectionName === '')  {
                     blocksArray = currentStructure.blocks;
                 } else {
                     collectionPoint = currentStructure.collections.filter(function (collection) {
-                        return collection.name === answer.parentBlockOfModifier.collectionName;
+                        return collection.name === answers.parentBlockOfModifier.collectionName;
                     });
                     blocksArray = collectionPoint[0].blocks;
-                    //blocksArray = currentStructure.collections[answer.parentBlockOfModifier.collectionName].blocks;
                 }
 
-                blockPoint = blocksArray.filter(function(item) {
-                    return item.name === answer.parentBlockOfModifier.blockName;
+                blockPoint = blocksArray.filter(function(block) {
+                    return block.name === answers.parentBlockOfModifier.blockName;
                 });
 
                 blockPoint[0].elements.forEach(function (element) {
