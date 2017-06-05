@@ -78,54 +78,47 @@ module.exports = simple_bem.Base.extend({
 
         switch (this.answers.creatingComponentType) {
             case 'element':
-                this.answers.creatingComponentName = prefixForElement + this.answers.creatingComponentName;
+                this.answers.creatingComponentName = this.config.get('prefixForElement') + this.answers.creatingComponentName;
                 break;
             case 'modifier':
-                this.answers.creatingComponentName = prefixForModifier + this.answers.creatingComponentName;
+                this.answers.creatingComponentName = this.config.get('prefixForModifier') + this.answers.creatingComponentName;
                 break;
         }
 
         this.answers.fileName = this.answers.creatingComponentName + '.' + this.config.get('ext');
 
         var config = this.config.getAll(),
-            prefixForElement = config.prefixForElement,
-            prefixForModifier = config.prefixForModifier,
             answers = this.answers,
             creatingComponentName = answers.creatingComponentName,
             templatePath = answers.creatingComponentType + '.tmpl',
             root = path.join(this.destinationRoot(), config.bemDirectory),
             destPath,
-            parentPath,
 			component,
             fileName = answers.fileName;
 
         function getDestPathForBlock() {
-
-            var destPathForBlock;
-			component = path.join(creatingComponentName, fileName);
-
-            if (answers.putBlockInCollection) {
-
-                if (answers.parentCollectionOfBlock === false) {
-                    answers.parentCollectionOfBlock = answers.newParentCollectionOfBlock + config.collectionSuffix;
-                    mkdirp.sync(path.join(root, answers.parentCollectionOfBlock));
-                }
-
-                destPathForBlock = path.join(root, answers.parentCollectionOfBlock, component);
-            } else {
-                destPathForBlock = path.join(root, component);
-            }
-            return destPathForBlock;
+            component = path.join(creatingComponentName, fileName);
+            return path.join(root, answers.parentCollectionOfBlock, component);
         }
 
         function getDestPathForElement() {
 
             component = path.join(creatingComponentName, answers.parentBlockOfElement.blockName + fileName);
+            answers.exportTo = path.join(
+                root,
+                answers.parentBlockOfElement.collectionName,
+                answers.parentBlockOfElement.blockName,
+                answers.parentBlockOfElement.blockName + '.' + config.ext
+            );
+
+            answers.pathToComponent = '';
 
             return path.join(root, answers.parentBlockOfElement.collectionName, answers.parentBlockOfElement.blockName, component);
         }
 
         function getDestPathForModifier() {
+
+            answers.pathToComponent = '';
 
             switch (answers.modifierFor) {
                 case 'forBlock':
@@ -162,7 +155,7 @@ module.exports = simple_bem.Base.extend({
 //                answers
 //			);
 
-            fs.readFile(path.join(root, 'abc.txt'), 'utf8', function (err, data) {
+            fs.readFile(answers.exportTo, 'utf8', function (err, data) {
                 if (err) {
                     throw err;
                 }
@@ -171,9 +164,9 @@ module.exports = simple_bem.Base.extend({
                     delimiters: ['//<=', '=>'],
                     tag: 'bem' + helpTo.capitalize(answers.creatingComponentType) + 's'
                 });
-                content.append('@import "' + component.split(path.sep).join('/') + '";');
+                content.append('@import "' + path.join(answers.pathToComponent, component).split(path.sep).join('/') + '";');
 
-                fs.writeFileSync(path.join(root, 'abc.txt'), content, 'utf8');
+                fs.writeFileSync(answers.exportTo, content, 'utf8');
             });
         }
     }

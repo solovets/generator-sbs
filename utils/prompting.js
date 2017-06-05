@@ -96,13 +96,13 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             message: 'Should I put this Block in collection?',
             when: function (answers) {
                 answers.pathToComponent = '';
-                answers.importfrom = path.join(generatorConfig.bemDirectoryPath, generatorConfig.rootStylesFile);
+                answers.exportTo = path.join(generatorConfig.bemDirectoryPath, generatorConfig.rootStylesFile);
                 return generatorConfig.useCollections;
             },
             choices: [
                 {
                     name: 'No',
-                    value: false
+                    value: ''
                 },
                 {
                     name: 'Yes',
@@ -114,8 +114,15 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             type: 'list',
             name: 'parentCollectionOfBlock',
             message: 'Please choose Collection for block:',
-            when: function(answer) {
-                return answer.putBlockInCollection;
+            when: function(answers) {
+
+                if (answers.putBlockInCollection === false) {
+                    answers.parentCollectionOfBlock = '';
+                }
+
+                return answers.putBlockInCollection;
+
+
             },
             choices: function () {
                 var choicesArray = [];
@@ -142,7 +149,12 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             type: 'input',
             name: 'newParentCollectionOfBlock',
             when: function (answers) {
-                return answers.parentCollectionOfBlock === false;
+
+                if (answers.parentCollectionOfBlock !== false) {
+                    answers.pathToComponent = answers.parentCollectionOfBlock;
+                }
+
+                return answers.parentCollectionOfBlock;
             },
             message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically',
             filter: function (input) {
@@ -152,13 +164,15 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
 
                 return input;
             },
-            validate: function (input) {
+            validate: function (input, answers) {
 
                 if (!/^[_a-zA-Z0-9-]+$/.test(input)) {
                     return 'Allowed characters: 0-9, A-Z, dash and underscore';
+                } else {
+                    answers.parentCollectionOfBlock = input + generatorConfig.collectionSuffix;
+                    answers.pathToComponent = answers.parentCollectionOfBlock;
+                    return true;
                 }
-
-                return true;
             }
         }
     ];
