@@ -56,7 +56,7 @@ function general (dest) {
                 return input;
             },
             validate: function (input) {
-                if (/^[_a-zA-Z0-9-]+$/.test(input)) {
+                if (/^[_a-zA-Z0-9-]+$/.test(input) && input.length > 3) {
                     return true;
                 } else {
                     return 'Allowed characters: 0-9, A-Z, dash and underscore';
