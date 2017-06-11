@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "This generator helps to create and support bem-structure for you project.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": ""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/solovets/generator-simple-bem.git"
+    "url": "git+https://github.com/solovets/generator-sbs.git"
   },
   "files": [
     "generators/app"
@@ -15,16 +15,19 @@
   "keywords": [
     "yo",
     "yeoman-generator",
-    "yeoman-generator-bem",
-    "generator-bem",
-    "generator-simple-bem"
+    "yeoman-generator-sbs",
+    "generator-sbs",
+    "bem",
+    "generator bem",
+    "generator styles",
+    "generator css"
   ],
   "author": "Denis Solovets",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/solovets/generator-simple-bem/issues"
+    "url": "https://github.com/solovets/generator-sbs/issues"
   },
-  "homepage": "https://github.com/solovets/generator-simple-bem#readme",
+  "homepage": "https://github.com/solovets/generator-sbs#readme",
   "dependencies": {
     "async": "^2.1.4",
     "inquirer": "^1.2.3",
