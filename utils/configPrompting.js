@@ -68,8 +68,15 @@ function general (dest) {
             name: 'bemDirectory',
             message: 'Plase define bem root directory',
             default: 'src/styles/bem',
-            validate: function (input) {
-                return isBemDirectoryExists(path.join(dest, input), true);
+            validate: function (input, answers) {
+                if (isBemDirectoryExists(path.join(dest, input)) !== true) {
+                    answers.createBemDirectory = true;
+
+
+
+                } else {
+                    return true;
+                }
             }
         },
         {

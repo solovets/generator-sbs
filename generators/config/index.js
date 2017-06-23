@@ -1,5 +1,5 @@
 'use strict';
-var simple_bem = require('yeoman-generator'),
+var sbs = require('yeoman-generator'),
     async = require('async'),
     path = require('path'),
     helpTo = require('../../utils/helpers.js'),
@@ -10,7 +10,7 @@ var simple_bem = require('yeoman-generator'),
         return JSON.stringify(obj, null, 4);
     };
 
-module.exports = simple_bem.Base.extend({
+module.exports = sbs.Base.extend({
 
     prompting: function () {
 
@@ -38,7 +38,6 @@ module.exports = simple_bem.Base.extend({
 
         this.config.set('prefixForElement', namingConventions[answers.namingConvention].prefixForElement);
         this.config.set('prefixForModifier', namingConventions[answers.namingConvention].prefixForModifier);
-        this.config.set('bemDirectoryPath', path.join(this.destinationRoot(), answers.bemDirectory));
 
         if (answers.ext === false) {
             this.config.set('ext', answers.custonExtension);
@@ -54,7 +53,7 @@ module.exports = simple_bem.Base.extend({
         if (this.answers.createRootStylesFile === true) {
             this.fs.copyTpl(
                 this.templatePath('root.tmpl'),
-                this.destinationPath(path.join(this.config.get('bemDirectoryPath'), this.config.get('rootStylesFile'))),
+                this.destinationPath(path.join(this.destinationRoot(), answers.bemDirectory, this.config.get('rootStylesFile'))),
                 {}
             );
         }

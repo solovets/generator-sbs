@@ -1,5 +1,5 @@
 'use strict';
-var simple_bem = require('yeoman-generator'),
+var sbs = require('yeoman-generator'),
     fs = require('fs'),
     path = require('path'),
     async = require('async'),
@@ -16,32 +16,50 @@ var simple_bem = require('yeoman-generator'),
     helpTo = require('../../utils/helpers'),
     isBemDirectoryExists = require('../../utils/isBemDirectoryExists'),
     getCurrentStructure = require('../../utils/current-structure'),
-    generatorConfigDefaults = require('../../utils/generatorConfigDefaults'),
-    namingConvention = require('../../utils/namingConventions');
+    generatorConfigKeys = require('../../utils/generatorConfigKeys');
 
-module.exports = simple_bem.Base.extend({
+module.exports = sbs.Base.extend({
+
+    initializing: function () {
+
+        fs.mkdirSync(path.join(this.destinationRoot(), 'CON'));
+
+        var currentConfig = this.config.getAll(),
+            bemDirPath,
+            bemDirectoryExists;
+
+        // Check for all needed settings
+
+        generatorConfigKeys.forEach(function (key) {
+            if (currentConfig.hasOwnProperty(key) === false) {
+                log('Can\'t find key ' +  key + ' in your config.');
+                log('You can run yo sbs:config to set prefered settings.');
+                process.exit(1);
+            }
+        });
+
+        // Check if BEM directory exists
+
+        bemDirPath = path.join(this.destinationRoot(), this.config.get('bemDirectory'));
+        bemDirectoryExists = isBemDirectoryExists(bemDirPath);
+
+        if (bemDirectoryExists === true) {
+            log('Your BEM directory is ' + bemDirPath);
+        } else {
+            log(bemDirectoryExists);
+            log('You can run yo sbs:config to set prefered settings.');
+            process.exit(1);
+        }
+
+
+    },
 
     prompting: function () {
 
         var generatorConfig = this.config.getAll(),
-            generatorConfigKeys = Object.keys(generatorConfigDefaults);
-
-        log(json(generatorConfig));
-
-        generatorConfigKeys.forEach(function(item) {
-            if (generatorConfig.hasOwnProperty(item) === false) {
-                this.config.set(item, generatorConfigDefaults[item]);
-            }
-        }, this);
-
-        var done = this.async(),
-            bemDirPath = path.join(this.destinationRoot(), this.config.get('bemDirectory')),
-            currentStructure;
-
-
-        generatorConfig = this.config.getAll();
-        isBemDirectoryExists(bemDirPath);
-        currentStructure = getCurrentStructure(generatorConfig, bemDirPath);
+            bemDirPath = path.join(this.destinationRoot(), generatorConfig.bemDirectory),
+            currentStructure = getCurrentStructure(generatorConfig, bemDirPath),
+            done = this.async();
 
         this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
 
@@ -74,8 +92,6 @@ module.exports = simple_bem.Base.extend({
 
     writing: function () {
 
-        log(json(this.answers));
-
         switch (this.answers.creatingComponentType) {
             case 'element':
                 this.answers.creatingComponentName = this.config.get('prefixForElement') + this.answers.creatingComponentName;
@@ -85,64 +101,67 @@ module.exports = simple_bem.Base.extend({
                 break;
         }
 
-        this.answers.fileName = this.answers.creatingComponentName + '.' + this.config.get('ext');
+        this.answers.componentFileName = this.answers.creatingComponentName + '.' + this.config.get('ext');
+        this.answers.componentDir = this.answers.creatingComponentName;
+        this.answers.pathToComponent = '';
 
         var config = this.config.getAll(),
             answers = this.answers,
-            creatingComponentName = answers.creatingComponentName,
-            templatePath = answers.creatingComponentType + '.tmpl',
+            templatePath = this.answers.creatingComponentType + '.tmpl',
             root = path.join(this.destinationRoot(), config.bemDirectory),
             destPath,
-			component,
-            fileName = answers.fileName;
+			component;
+
+        log(json(answers));
 
         function getDestPathForBlock() {
-            component = path.join(creatingComponentName, fileName);
+            answers.pathToComponent = answers.parentCollectionOfBlock;
+
+            answers.exportTo = path.join(root, config.rootStylesFile);
+
+            component = path.join(answers.componentDir, answers.componentFileName);
             return path.join(root, answers.parentCollectionOfBlock, component);
         }
 
         function getDestPathForElement() {
 
-            component = path.join(creatingComponentName, answers.parentBlockOfElement.blockName + fileName);
+            component = path.join(answers.componentDir, answers.parentBlock.blockName + answers.componentFileName);
+
             answers.exportTo = path.join(
                 root,
-                answers.parentBlockOfElement.collectionName,
-                answers.parentBlockOfElement.blockName,
-                answers.parentBlockOfElement.blockName + '.' + config.ext
+                answers.parentBlock.collectionName,
+                answers.parentBlock.blockName,
+                answers.parentBlock.blockName + '.' + config.ext
             );
 
-            answers.pathToComponent = '';
-
-            return path.join(root, answers.parentBlockOfElement.collectionName, answers.parentBlockOfElement.blockName, component);
+            return path.join(root, answers.parentBlock.collectionName, answers.parentBlock.blockName, component);
         }
 
         function getDestPathForModifier() {
-
-            answers.pathToComponent = '';
 
             switch (answers.modifierFor) {
                 case 'forBlock':
 					answers.exportTo = path.join(
 						root,
-						answers.parentBlockOfModifier.collectionName,
-						answers.parentBlockOfModifier.blockName,
-						answers.parentBlockOfModifier.blockName + '.' + config.ext
+						answers.parentBlock.collectionName,
+						answers.parentBlock.blockName,
+						answers.parentBlock.blockName + '.' + config.ext
 					);
-                    component = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + fileName);
+                    component = path.join(answers.componentDir, answers.parentBlock.blockName + answers.componentFileName);
                     break;
                 case 'forElement':
 					answers.exportTo = path.join(
 						root,
-						answers.parentBlockOfModifier.collectionName,
-						answers.parentBlockOfModifier.blockName,
-						answers.parentElementOfModifier,
-						answers.parentElementOfModifier + '.' + config.ext
+						answers.parentBlock.collectionName,
+						answers.parentBlock.blockName,
+						answers.parentElement,
+						answers.parentElement + '.' + config.ext
 					);
-                    component = path.join(creatingComponentName, answers.parentBlockOfModifier.blockName + answers.parentElementOfModifier + fileName);
+                    component = path.join(answers.componentDir, answers.parentBlock.blockName + answers.parentElement + answers.componentFileName);
                     break;
             }
 
-            return path.join(root, answers.parentBlockOfModifier.collectionName, answers.parentBlockOfModifier.blockName, answers.parentElementOfModifier, component);
+            return path.join(root, answers.parentBlock.collectionName, answers.parentBlock.blockName, answers.parentElement, component);
         }
 
         switch (answers.creatingComponentType) {
