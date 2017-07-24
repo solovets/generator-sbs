@@ -1,0 +1,7 @@
+[href^="http://facebook.com"] {
+    text-decoration: underline;
+}
+
+div ~ p {
+    display: none;
+}
