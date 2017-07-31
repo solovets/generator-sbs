@@ -2,9 +2,10 @@
 var sbs = require('yeoman-generator'),
     async = require('async'),
     path = require('path'),
+    mkdirp = require('mkdirp'),
     helpTo = require('../../utils/helpers.js'),
     namingConventions = require('../../utils/namingConventions'),
-    prompting = require('../../utils/configPrompting'),
+    prompting = require('../../utils/prompting-config'),
     log = console.log,
     json = function (obj) {
         return JSON.stringify(obj, null, 4);
@@ -39,10 +40,6 @@ module.exports = sbs.Base.extend({
         this.config.set('prefixForElement', namingConventions[answers.namingConvention].prefixForElement);
         this.config.set('prefixForModifier', namingConventions[answers.namingConvention].prefixForModifier);
 
-        if (answers.ext === false) {
-            this.config.set('ext', answers.custonExtension);
-        }
-
         this.config.save();
     },
 
@@ -50,10 +47,20 @@ module.exports = sbs.Base.extend({
         log('Your configuration object: ');
         log(json(this.config.getAll()));
 
-        if (this.answers.createRootStylesFile === true) {
+        var config = this.config.getAll();
+
+        if (config.hasOwnProperty('createBemDirectory') && config.createBemDirectory === true) {
+            mkdirp(path.join(this.destinationRoot(), config.bemDirectory), function (error) {
+                if (error) {
+                    log(error);
+                }
+            });
+        }
+
+        if (config.createRootStylesFile === true) {
             this.fs.copyTpl(
                 this.templatePath('root.tmpl'),
-                this.destinationPath(path.join(this.destinationRoot(), answers.bemDirectory, this.config.get('rootStylesFile'))),
+                this.destinationPath(path.join(this.destinationRoot(), config.bemDirectory, config.rootStylesFile)),
                 {}
             );
         }

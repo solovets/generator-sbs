@@ -12,7 +12,7 @@ var sbs = require('yeoman-generator'),
         return JSON.stringify(obj, null, 4);
     },
 
-    prompting = require('../../utils/prompting'),
+    prompting = require('../../utils/prompting-sbs'),
     helpTo = require('../../utils/helpers'),
     isBemDirectoryExists = require('../../utils/isBemDirectoryExists'),
     getCurrentStructure = require('../../utils/current-structure'),
@@ -21,8 +21,6 @@ var sbs = require('yeoman-generator'),
 module.exports = sbs.Base.extend({
 
     initializing: function () {
-
-        fs.mkdirSync(path.join(this.destinationRoot(), 'CON'));
 
         var currentConfig = this.config.getAll(),
             bemDirPath,

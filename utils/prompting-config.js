@@ -1,8 +1,8 @@
 var path = require('path');
 var fs = require('fs');
 var _ = require('underscore.string');
-var filter = require('./filter-name.js');
-var validate = require('./validate-name.js');
+var helpTo = require('./helpers');
+var namingConventions = require('./namingConventions');
 var isBemDirectoryExists = require('./isBemDirectoryExists');
 
 prompting = {
@@ -16,24 +16,21 @@ function general (dest) {
             type: 'list',
             name: 'namingConvention',
             message: 'Which naming convention do you prefer?',
-            choices: [
-                {
-                    name: 'Classic style',
-                    value: 'classic'
-                },
-                {
-                    name: 'Two Dashes style',
-                    value: 'twoDashes'
-                },
-                {
-                    name: 'CamelCase style',
-                    value: 'CamelCase'
-                },
-                {
-                    name: '\"Sans underscore\" style',
-                    value: 'noUnderscores'
+            choices: function() {
+
+                var choicesArray = [];
+
+                for (convention in namingConventions) {
+                    if (namingConventions.hasOwnProperty(convention)) {
+                        choicesArray.push({
+                            name: namingConventions[convention].name,
+                            value: convention
+                        });
+                    }
                 }
-            ]
+
+                return choicesArray;
+            }
         },
         {
             type: 'confirm',
@@ -51,9 +48,7 @@ function general (dest) {
             },
             filter: function (input) {
                 input = _.trim(input, '-_');
-                input = '--' + input;
-
-                return input;
+                return '--' + input;
             },
             validate: function (input) {
                 if (/^[_a-zA-Z0-9-]+$/.test(input) && input.length > 3) {
@@ -68,29 +63,51 @@ function general (dest) {
             name: 'bemDirectory',
             message: 'Plase define bem root directory',
             default: 'src/styles/bem',
+            filter: function(input) {
+                input = path.normalize(input);
+                input = _.trim(input, path.sep);
+                return input;
+            },
             validate: function (input, answers) {
+
                 if (isBemDirectoryExists(path.join(dest, input)) !== true) {
+
+                    var pathPoints = [],
+                        errorPoint = false,
+                        valid;
+
+                    pathPoints = input.split(path.sep);
+
+                    pathPoints.some(function (item) {
+                        valid = helpTo.validateName(answers.namingConvention, item, 'root', null);
+
+                        if (valid !== true) {
+                            errorPoint = item;
+                        }
+
+                        return valid !== true;
+                    });
+
+                    if (errorPoint !== false) {
+                        console.log(' Error in ' + errorPoint);
+                        return valid;
+                    }
+
+
                     answers.createBemDirectory = true;
-
-
-
-                } else {
-                    return true;
                 }
+
+                return true;
             }
         },
         {
             type: 'list',
             name: 'ext',
-            message: 'Which extension of created files do you prefer?',
+            message: 'Which extension of created files do you need?',
             choices: [
                 {
                     name: 'scss',
                     value: 'scss'
-                },
-                {
-                    name: 'sass',
-                    value: 'sass'
                 },
                 {
                     name: 'styl',
@@ -99,6 +116,10 @@ function general (dest) {
                 {
                     name: 'less',
                     value: 'less'
+                },
+                {
+                    name: 'sass',
+                    value: 'sass'
                 },
                 {
                     name: 'Other (need to define)',
@@ -116,8 +137,9 @@ function general (dest) {
             filter: function (input) {
                 return _.trim(input, '.');
             },
-            validate: function (input) {
+            validate: function (input, answers) {
                 if (/^[\.a-zA-Z0-9]+$/.test(input)) {
+                    answers.ext = input;
                     return true;
                 } else {
                     return 'Allowed characters: dot, A-Z, 0-9';
@@ -129,15 +151,15 @@ function general (dest) {
 
 function rootStyles(dest, previousAnswers) {
 
-    var ext = previousAnswers.ext === false ? previousAnswers.custonExtension : previousAnswers.ext;
+    var ext = previousAnswers.ext;
 
     return [
         {
             type: 'input',
             name: 'rootStylesFile',
-            message: 'Please define \"root\" styles file to @import blocks in it (will be created if doesn\'t exist)',
+            message: 'Please define \"root\" styles file to @import blocks in it',
             default: function () {
-                return 'styles.' + (previousAnswers.ext === false ? previousAnswers.custonExtension : previousAnswers.ext);
+                return 'styles.' + ext;
             },
             filter: function (input) {
 
@@ -146,10 +168,11 @@ function rootStyles(dest, previousAnswers) {
                 if (!new RegExp('\.' + ext + '$').test(input)) {
                     fileName = input + '.' + ext;
                 }
+
                 if (fs.existsSync(path.join(dest, previousAnswers.bemDirectory, fileName))) {
                     return fileName;
                 } else {
-                    input = filter(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$'), ''), 'root', null);
+                    input = helpTo.filterName(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$'), ''), 'root', null);
                     return input + '.' + ext;
                 }
             },
@@ -161,7 +184,7 @@ function rootStyles(dest, previousAnswers) {
                 if (fs.existsSync(pathToRootStyles)) {
                     return true;
                 } else {
-                    valid = validate(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$')), 'root', null);
+                    valid = helpTo.validateName(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$')), 'root', null);
 
                     if (valid === true) {
                         answers.createRootStylesFile = true;

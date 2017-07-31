@@ -1,5 +1,5 @@
 {
-  "name": "generator-simple-bem",
+  "name": "generator-sbs",
   "version": "1.0.0",
   "description": "This generator helps to create and support bem-structure for you project.",
   "scripts": {
