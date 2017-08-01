@@ -28,7 +28,7 @@ module.exports = sbs.Base.extend({
 
         // Check for all needed settings
 
-        generatorConfigKeys.forEach(function (key) {
+        generatorConfigKeys.some(function (key) {
             if (currentConfig.hasOwnProperty(key) === false) {
                 log('Can\'t find key ' +  key + ' in your config.');
                 log('You can run yo sbs:config to set prefered settings.');

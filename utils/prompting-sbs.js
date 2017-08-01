@@ -1,8 +1,6 @@
 var existingBlocks = require('./current-structure');
 var path = require('path');
-var filter = require('./filter-name.js');
-var validate = require('./validate-name.js');
-
+var helpTo = require('./helpers');
 var inquirer = require('inquirer');
 var _ = require('underscore.string');
 
@@ -49,11 +47,10 @@ function askName(convention, type, separator) {
         name: 'creatingComponentName',
         message: 'Please define name:',
         filter: function (input) {
-            return filter(convention, input, type, separator);
+            return helpTo.filterName(convention, input, type, separator);
         },
         validate: function (input, answers) {
-
-            return validate(convention, input, type, separator);
+            return helpTo.validateName(convention, input, type, separator);
         }
     }
 }
@@ -91,9 +88,7 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             type: 'list',
             name: 'putBlockInCollection',
             message: 'Should I put this Block in collection?',
-            when: function (answers) {
-                return generatorConfig.useCollections;
-            },
+            when: generatorConfig.useCollections,
             choices: [
                 {
                     name: 'No',
@@ -143,13 +138,7 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
         {
             type: 'input',
             name: 'newParentCollectionOfBlock',
-            when: function (answers) {
-
-                if (answers.parentCollectionOfBlock !== false) {
-                }
-
-                return answers.parentCollectionOfBlock === false;
-            },
+            when: answers.parentCollectionOfBlock === false,
             message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically',
             filter: function (input) {
                 input = input.replace(new RegExp(generatorConfig.collectionSuffix + '$', 'i'), '');
@@ -159,13 +148,13 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
                 return input;
             },
             validate: function (input, answers) {
+                var valid = helpTo.validateName(generatorConfig.namingConvention, input, null, null);
 
-                if (!/^[_a-zA-Z0-9-]+$/.test(input)) {
-                    return 'Allowed characters: 0-9, A-Z, dash and underscore';
-                } else {
+                if (valid === true) {
                     answers.parentCollectionOfBlock = input + generatorConfig.collectionSuffix;
-                    return true;
                 }
+
+                return valid;
             }
         }
     ];

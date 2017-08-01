@@ -49,6 +49,8 @@ function classifyModifier(string, separator) {
 function filterName(convention, input, type, separator) {
     var modifierKeyVal;
 
+    input = _.trim(input);
+
     switch (convention) {
         case 'classic':
             if (type === 'modifier') {
