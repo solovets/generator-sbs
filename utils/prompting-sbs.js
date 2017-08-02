@@ -104,16 +104,7 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             type: 'list',
             name: 'parentCollectionOfBlock',
             message: 'Please choose Collection for block:',
-            when: function(answers) {
-
-                if (answers.putBlockInCollection === false) {
-                    answers.parentCollectionOfBlock = '';
-                }
-
-                return answers.putBlockInCollection;
-
-
-            },
+            when: answers.putBlockInCollection,
             choices: function () {
                 var choicesArray = [];
 

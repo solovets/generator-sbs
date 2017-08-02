@@ -88,8 +88,7 @@ module.exports = sbs.Base.extend({
         }.bind(this));
     },
 
-    writing: function () {
-
+    configuring: function () {
         switch (this.answers.creatingComponentType) {
             case 'element':
                 this.answers.creatingComponentName = this.config.get('prefixForElement') + this.answers.creatingComponentName;
@@ -102,7 +101,12 @@ module.exports = sbs.Base.extend({
         this.answers.componentFileName = this.answers.creatingComponentName + '.' + this.config.get('ext');
         this.answers.componentDir = this.answers.creatingComponentName;
         this.answers.pathToComponent = '';
+        if (this.answers.hasOwnProperty('parentCollectionOfBlock') === false) {
+            this.answers.parentCollectionOfBlock = '';
+        }
+    },
 
+    writing: function () {
         var config = this.config.getAll(),
             answers = this.answers,
             templatePath = this.answers.creatingComponentType + '.tmpl',
