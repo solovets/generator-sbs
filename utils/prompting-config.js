@@ -1,14 +1,15 @@
-var path = require('path');
-var fs = require('fs');
-var _ = require('underscore.string');
-var helpTo = require('./helpers');
-var namingConventions = require('./namingConventions');
-var isBemDirectoryExists = require('./isBemDirectoryExists');
+const path = require('path'),
+    fs = require('fs'),
+    _ = require('underscore.string'),
+    helpTo = require('./helpers'),
+    extensions = require('./config/extensions');
+    namingConventions = require('./namingConventions'),
+    isBemDirectoryExists = require('./isBemDirectoryExists'),
 
-prompting = {
-    general: general,
-    rootStyles: rootStyles
-}
+    prompting = {
+        general: general,
+        rootStyles: rootStyles
+    };
 
 function general (dest) {
     return [
@@ -16,16 +17,18 @@ function general (dest) {
             type: 'list',
             name: 'namingConvention',
             message: 'Which naming convention do you prefer?',
-            choices: function() {
+            choices: () => {
 
-                var choicesArray = [];
+                let choicesArray = [];
 
                 for (convention in namingConventions) {
                     if (namingConventions.hasOwnProperty(convention)) {
+
                         choicesArray.push({
                             name: namingConventions[convention].name,
                             value: convention
                         });
+
                     }
                 }
 
@@ -43,19 +46,15 @@ function general (dest) {
             name: 'collectionSuffix',
             message: 'Please define collection suffix:',
             default: '--bem-collection',
-            when: function (ansers) {
+            when: (ansers) => {
                 return ansers.useCollections;
             },
-            filter: function (input) {
+            filter: (input) => {
                 input = _.trim(input, '-_');
                 return '--' + input;
             },
-            validate: function (input) {
-                if (/^[_a-zA-Z0-9-]+$/.test(input) && input.length > 3) {
-                    return true;
-                } else {
-                    return 'Allowed characters: 0-9, A-Z, dash and underscore';
-                }
+            validate: (input) => {
+                return helpTo.validateName(null, input, 'collection-suffix', null);
             }
         },
         {
@@ -72,13 +71,14 @@ function general (dest) {
 
                 if (isBemDirectoryExists(path.join(dest, input)) !== true) {
 
-                    var pathPoints = [],
+                    let pathPoints = [],
                         errorPoint = false,
                         valid;
 
                     pathPoints = input.split(path.sep);
 
-                    pathPoints.some(function (item) {
+                    pathPoints.some((item) => {
+
                         valid = helpTo.validateName(answers.namingConvention, item, 'root', null);
 
                         if (valid !== true) {
@@ -104,28 +104,7 @@ function general (dest) {
             type: 'list',
             name: 'ext',
             message: 'Which extension of created files do you need?',
-            choices: [
-                {
-                    name: 'scss',
-                    value: 'scss'
-                },
-                {
-                    name: 'styl',
-                    value: 'styl'
-                },
-                {
-                    name: 'less',
-                    value: 'less'
-                },
-                {
-                    name: 'sass',
-                    value: 'sass'
-                },
-                {
-                    name: 'Other (need to define)',
-                    value: false
-                }
-            ]
+            choices: extensions
         },
         {
             type: 'input',

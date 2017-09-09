@@ -1,11 +1,14 @@
 'use strict';
+
 var sbs = require('yeoman-generator'),
     async = require('async'),
     path = require('path'),
     mkdirp = require('mkdirp'),
+
     helpTo = require('../../utils/helpers.js'),
     namingConventions = require('../../utils/namingConventions'),
     prompting = require('../../utils/prompting-config'),
+
     log = console.log,
     json = function (obj) {
         return JSON.stringify(obj, null, 4);

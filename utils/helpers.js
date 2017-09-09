@@ -1,4 +1,4 @@
-var _ = require('underscore.string');
+const _ = require('underscore.string');
 
 var helpers = {
     merge: merge,
@@ -112,6 +112,17 @@ function validateName(convention, input, type, separator) {
             return 'Extra dot(s)';
         }
 
+    }
+
+    if (type === 'collection-suffix') {
+
+        let collection_suffix = _.trim(input, '-_');
+
+        if (/^[a-zA-Z0-9]+$/.test(collection_suffix)) {
+            return true;
+        } else {
+            return 'Allowed characters: 0-9, A-Z, dash and underscore';
+        }
     }
 
     if (convention === 'classic' || convention === 'CamelCase' || convention === 'noUnderscores') {
