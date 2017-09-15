@@ -118,7 +118,7 @@ function validateName(convention, input, type, separator) {
 
         let collection_suffix = _.trim(input, '-_');
 
-        if (/^[a-zA-Z0-9]+$/.test(collection_suffix)) {
+        if (/^[a-zA-Z0-9-_]+$/.test(collection_suffix)) {
             return true;
         } else {
             return 'Allowed characters: 0-9, A-Z, dash and underscore';

@@ -1,15 +1,10 @@
-const path = require('path'),
-    fs = require('fs'),
-    _ = require('underscore.string'),
-    helpTo = require('./helpers'),
-    extensions = require('./config/extensions');
-    namingConventions = require('./namingConventions'),
-    isBemDirectoryExists = require('./isBemDirectoryExists'),
-
-    prompting = {
-        general: general,
-        rootStyles: rootStyles
-    };
+const path = require('path');
+const fs = require('fs');
+const _  = require('underscore.string');
+const helpTo = require('./helpers'),
+const extensions = require('./config/extensions');
+const namingConventions = require('./namingConventions');
+const isBemDirectoryExists = require('./isBemDirectoryExists');
 
 function general (dest) {
     return [
@@ -124,46 +119,38 @@ function general (dest) {
                     return 'Allowed characters: dot, A-Z, 0-9';
                 }
             }
-        }
-    ];
-}
-
-function rootStyles(dest, previousAnswers) {
-
-    var ext = previousAnswers.ext;
-
-    return [
+        },
         {
             type: 'input',
             name: 'rootStylesFile',
             message: 'Please define \"root\" styles file to @import blocks in it',
-            default: function () {
-                return 'styles.' + ext;
+            default: (answers) => {
+                return 'styles.' + answers.ext;
             },
-            filter: function (input) {
+            filter: function (input, answers) {
 
-                var fileName = input;
+                let fileName = input;
 
-                if (!new RegExp('\.' + ext + '$').test(input)) {
-                    fileName = input + '.' + ext;
+                if (!new RegExp('\.' + answers.ext + '$').test(input)) {
+                    fileName = input + '.' + answers.ext;
                 }
 
-                if (fs.existsSync(path.join(dest, previousAnswers.bemDirectory, fileName))) {
+                if (fs.existsSync(path.join(dest, answers.bemDirectory, fileName))) {
                     return fileName;
                 } else {
-                    input = helpTo.filterName(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$'), ''), 'root', null);
-                    return input + '.' + ext;
+                    input = helpTo.filterName(answers.namingConvention, input.replace(new RegExp('\.' + answers.ext + '$'), ''), 'root', null);
+                    return input + '.' + answers.ext;
                 }
             },
             validate: function (input, answers) {
 
-                var pathToRootStyles = path.join(dest, previousAnswers.bemDirectory, input),
+                let pathToRootStyles = path.join(dest, answers.bemDirectory, input),
                     valid;
 
                 if (fs.existsSync(pathToRootStyles)) {
                     return true;
                 } else {
-                    valid = helpTo.validateName(previousAnswers.namingConvention, input.replace(new RegExp('\.' + ext + '$')), 'root', null);
+                    valid = helpTo.validateName(answers.namingConvention, input.replace(new RegExp('\.' + answers.ext + '$')), 'root', null);
 
                     if (valid === true) {
                         answers.createRootStylesFile = true;
@@ -172,9 +159,8 @@ function rootStyles(dest, previousAnswers) {
                     return valid;
                 }
             }
-
         }
-    ]
+    ];
 }
 
-module.exports = prompting;
+module.exports = general;

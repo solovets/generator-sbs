@@ -18,16 +18,12 @@ module.exports = sbs.Base.extend({
 
     prompting: function () {
 
-        var done = this.async();
+        const done = this.async();
 
-        this.prompt(prompting.general(this.destinationRoot())).then(function(answers) {
+        this.prompt(prompting(this.destinationRoot())).then(function(answers) {
 
             this.answers = answers;
-
-            this.prompt(prompting.rootStyles(this.destinationRoot(), this.answers)).then(function(answers) {
-                this.answers = helpTo.merge(this.answers, answers);
-                done();
-            }.bind(this));
+            done();
 
         }.bind(this));
     },
