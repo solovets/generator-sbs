@@ -1,12 +1,12 @@
 const path = require('path');
 const fs = require('fs');
-const _  = require('underscore.string');
-const helpTo = require('./helpers'),
+const _ = require('underscore.string');
+const helpTo = require('./helpers');
 const extensions = require('./config/extensions');
 const namingConventions = require('./namingConventions');
 const isBemDirectoryExists = require('./isBemDirectoryExists');
 
-function general (dest) {
+function prompting (dest) {
     return [
         {
             type: 'list',
@@ -163,4 +163,4 @@ function general (dest) {
     ];
 }
 
-module.exports = general;
+module.exports = prompting;
