@@ -1,6 +1,6 @@
-var fs = require('fs'),
-    path = require('path'),
-    isBemDirectoryExists = checkBemDirectory;
+const fs = require('fs');
+const path = require('path');
+const isBemDirectoryExists = checkBemDirectory;
 
 function checkBemDirectory(dir) {
 
@@ -10,15 +10,17 @@ function checkBemDirectory(dir) {
         return 'Provided dir should be absolute';
     }
 
-    if (fs.existsSync(dir)) {
-
-        if (fs.lstatSync(dir).isDirectory() === true) {
-            return true;
-        } else {
-            return 'It looks like provided dir ' + dir + ' is not a directory.';
-        }
-    } else {
-        return 'Can\'t find directory ' + dir;
+    switch ( fs.existsSync(dir) ) {
+        case true:
+            if (fs.lstatSync(dir).isDirectory()) {
+                return true;
+            } else {
+                return dir + ' is not a directory.';
+            }
+            break;
+        case false:
+            return 'Can\'t find directory ' + dir;
+            break;
     }
 }
 

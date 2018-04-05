@@ -9,9 +9,6 @@
     "type": "git",
     "url": "git+https://github.com/solovets/generator-sbs.git"
   },
-  "files": [
-    "generators/app"
-  ],
   "keywords": [
     "yo",
     "yeoman-generator",
@@ -31,7 +28,8 @@
   "dependencies": {
     "async": "^2.1.4",
     "inquirer": "^1.2.3",
-    "yeoman-generator": "^0.24.1"
+    "npm": "^5.8.0",
+    "yeoman-generator": "^2.0.3"
   },
   "devDependencies": {
     "chalk": "^1.1.3",

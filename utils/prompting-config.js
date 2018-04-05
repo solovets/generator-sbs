@@ -1,9 +1,11 @@
 const path = require('path');
 const fs = require('fs');
 const _ = require('underscore.string');
-const helpTo = require('./helpers');
-const extensions = require('./config/extensions');
+
 const namingConventions = require('./namingConventions');
+const extensions = require('./config/extensions');
+
+const $$ = require('./helpers');
 const isBemDirectoryExists = require('./isBemDirectoryExists');
 
 function prompting (dest) {
@@ -11,12 +13,12 @@ function prompting (dest) {
         {
             type: 'list',
             name: 'namingConvention',
-            message: 'Which naming convention do you prefer?',
+            message: 'Choose naming convention',
             choices: () => {
 
-                let choicesArray = [];
+                const choicesArray = [];
 
-                for (convention in namingConventions) {
+                for (let convention in namingConventions) {
                     if (namingConventions.hasOwnProperty(convention)) {
 
                         choicesArray.push({
@@ -39,17 +41,17 @@ function prompting (dest) {
         {
             type: 'input',
             name: 'collectionSuffix',
-            message: 'Please define collection suffix:',
+            message: 'Define collection suffix:',
             default: '--bem-collection',
-            when: (ansers) => {
-                return ansers.useCollections;
+            when: (answers) => {
+                return answers.useCollections;
             },
             filter: (input) => {
                 input = _.trim(input, '-_');
                 return '--' + input;
             },
             validate: (input) => {
-                return helpTo.validateName(null, input, 'collection-suffix', null);
+                return $$.validateName(null, input, 'collection-suffix');
             }
         },
         {
@@ -57,12 +59,12 @@ function prompting (dest) {
             name: 'bemDirectory',
             message: 'Plase define bem root directory',
             default: 'src/styles/bem',
-            filter: function(input) {
+            filter: (input) => {
                 input = path.normalize(input);
                 input = _.trim(input, path.sep);
                 return input;
             },
-            validate: function (input, answers) {
+            validate: (input, answers) => {
 
                 if (isBemDirectoryExists(path.join(dest, input)) !== true) {
 
@@ -74,7 +76,7 @@ function prompting (dest) {
 
                     pathPoints.some((item) => {
 
-                        valid = helpTo.validateName(answers.namingConvention, item, 'root', null);
+                        valid = $$.validateName(answers.namingConvention, item, 'root');
 
                         if (valid !== true) {
                             errorPoint = item;
@@ -84,7 +86,7 @@ function prompting (dest) {
                     });
 
                     if (errorPoint !== false) {
-                        console.log(' Error in ' + errorPoint);
+                        console.log('Error in ' + errorPoint);
                         return valid;
                     }
 
@@ -98,59 +100,61 @@ function prompting (dest) {
         {
             type: 'list',
             name: 'ext',
-            message: 'Which extension of created files do you need?',
+            message: 'Extension of created files:',
             choices: extensions
         },
         {
             type: 'input',
-            name: 'custonExtension',
+            name: 'customExtension',
             message: 'Please define extension:',
-            when: function (answers) {
+            when: (answers) => {
                 return answers.ext === false;
             },
-            filter: function (input) {
+            filter: (input) => {
                 return _.trim(input, '.');
             },
-            validate: function (input, answers) {
-                if (/^[\.a-zA-Z0-9]+$/.test(input)) {
+            validate: (input, answers) => {
+                if (/^[a-zA-Z0-9]+$/.test(input)) {
                     answers.ext = input;
                     return true;
                 } else {
-                    return 'Allowed characters: dot, A-Z, 0-9';
+                    return 'Allowed characters: A-Z, 0-9';
                 }
             }
         },
         {
             type: 'input',
             name: 'rootStylesFile',
-            message: 'Please define \"root\" styles file to @import blocks in it',
+            message: 'Please define \"root\" styles file to @import blocks into it',
             default: (answers) => {
                 return 'styles.' + answers.ext;
             },
             filter: function (input, answers) {
 
+                const re = new RegExp('\.' + answers.ext + '$');
                 let fileName = input;
 
-                if (!new RegExp('\.' + answers.ext + '$').test(input)) {
+                if (!re.test(input)) {
                     fileName = input + '.' + answers.ext;
                 }
 
                 if (fs.existsSync(path.join(dest, answers.bemDirectory, fileName))) {
                     return fileName;
                 } else {
-                    input = helpTo.filterName(answers.namingConvention, input.replace(new RegExp('\.' + answers.ext + '$'), ''), 'root', null);
+                    input = $$.filterName(answers.namingConvention, input.replace(re, ''), 'root');
                     return input + '.' + answers.ext;
                 }
             },
             validate: function (input, answers) {
 
-                let pathToRootStyles = path.join(dest, answers.bemDirectory, input),
-                    valid;
+                const re = new RegExp('\.' + answers.ext + '$');
+                const pathToRootStyles = path.join(dest, answers.bemDirectory, input);
+                let valid;
 
                 if (fs.existsSync(pathToRootStyles)) {
                     return true;
                 } else {
-                    valid = helpTo.validateName(answers.namingConvention, input.replace(new RegExp('\.' + answers.ext + '$')), 'root', null);
+                    valid = $$.validateName(answers.namingConvention, input.replace(re, ''), 'root');
 
                     if (valid === true) {
                         answers.createRootStylesFile = true;
