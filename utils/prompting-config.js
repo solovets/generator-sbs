@@ -8,8 +8,9 @@ const extensions = require('./config/extensions');
 const $$ = require('./helpers');
 const isBemDirectoryExists = require('./isBemDirectoryExists');
 
-function prompting (dest) {
-    return [
+function prompting (dest, test) {
+
+    const prompts = [
         {
             type: 'list',
             name: 'namingConvention',
@@ -47,8 +48,7 @@ function prompting (dest) {
                 return answers.useCollections;
             },
             filter: (input) => {
-                input = _.trim(input, '-_');
-                return '--' + input;
+                return $$.filterName(null, input, 'collection-suffix');
             },
             validate: (input) => {
                 return $$.validateName(null, input, 'collection-suffix');
@@ -60,34 +60,28 @@ function prompting (dest) {
             message: 'Plase define bem root directory',
             default: 'src/styles/bem',
             filter: (input) => {
-                input = path.normalize(input);
-                input = _.trim(input, path.sep);
-                return input;
+                return $$.filterName(null, input, 'path');
             },
             validate: (input, answers) => {
 
                 if (isBemDirectoryExists(path.join(dest, input)) !== true) {
 
-                    let pathPoints = [],
-                        errorPoint = false,
-                        valid;
 
-                    pathPoints = input.split(path.sep);
+                    const pathPoints = input.split(path.sep);
+                    let errorPoint = false,
+                        valid;
 
                     pathPoints.some((item) => {
 
-                        valid = $$.validateName(answers.namingConvention, item, 'root');
+                        valid = $$.validateName(null, item, 'root');
 
-                        if (valid !== true) {
-                            errorPoint = item;
-                        }
+                        if (valid !== true) errorPoint = item;
 
                         return valid !== true;
                     });
 
                     if (errorPoint !== false) {
-                        console.log('Error in ' + errorPoint);
-                        return valid;
+                        return 'Error in ' + errorPoint;
                     }
 
 
@@ -111,15 +105,14 @@ function prompting (dest) {
                 return answers.ext === false;
             },
             filter: (input) => {
-                return _.trim(input, '.');
+                return $$.trim(input, ' .');
             },
             validate: (input, answers) => {
-                if (/^[a-zA-Z0-9]+$/.test(input)) {
-                    answers.ext = input;
-                    return true;
-                } else {
-                    return 'Allowed characters: A-Z, 0-9';
-                }
+
+                const valid = $$.isAlphanumeric(input);
+                if (valid) answers.ext = input;
+
+                return valid;
             }
         },
         {
@@ -132,17 +125,15 @@ function prompting (dest) {
             filter: function (input, answers) {
 
                 const re = new RegExp('\.' + answers.ext + '$');
-                let fileName = input;
 
-                if (!re.test(input)) {
-                    fileName = input + '.' + answers.ext;
-                }
+                let fileName = input;
+                if (re.test(input) === false)  fileName += $$.dot(answers.ext);
 
                 if (fs.existsSync(path.join(dest, answers.bemDirectory, fileName))) {
                     return fileName;
                 } else {
                     input = $$.filterName(answers.namingConvention, input.replace(re, ''), 'root');
-                    return input + '.' + answers.ext;
+                    return input + $$.dot(answers.ext);
                 }
             },
             validate: function (input, answers) {
@@ -152,19 +143,34 @@ function prompting (dest) {
                 let valid;
 
                 if (fs.existsSync(pathToRootStyles)) {
-                    return true;
+                    valid = true;
                 } else {
                     valid = $$.validateName(answers.namingConvention, input.replace(re, ''), 'root');
 
-                    if (valid === true) {
+                    if (valid) {
                         answers.createRootStylesFile = true;
                     }
-
-                    return valid;
                 }
+
+                return valid;
             }
         }
     ];
+
+    if (test) {
+        prompts.push(
+            {
+                type: 'confirm',
+                name: 'createBemDirectory'
+            },
+            {
+                type: 'confirm',
+                name: 'createRootStylesFile'
+            }
+        );
+    }
+
+    return prompts;
 }
 
 module.exports = prompting;

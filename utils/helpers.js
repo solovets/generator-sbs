@@ -1,13 +1,23 @@
 const _ = require('underscore.string');
-
+const path = require('path');
 const namingConventions = require('./namingConventions');
 
 const helpers = {
     merge: merge,
     capitalize: capitalize,
+    lowFirstLetter: lowFirstLetter,
     dasherize: dasherize,
+    classifyModifier: classifyModifier,
+    forbiddenFileName: forbiddenFileName,
+    isAlphanumeric: isAlphanumeric,
     filterName: filterName,
-    validateName: validateName
+    validateName: validateName,
+    trim: trimmer,
+    dot: (string) => { return '.' + string },
+    log: console.log,
+    json: (obj) => {
+        JSON.stringify(obj, null, 4)
+    }
 };
 
 // This function merge object {a} and object {b}
@@ -21,6 +31,11 @@ function merge(a, b) {
 
     return a;
 }
+
+function trimmer(string, chars) {
+    return chars ? _.trim(string, chars) : _.trim(string);
+}
+
 
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -50,6 +65,14 @@ function classifyModifier(string, separator) {
 
 function forbiddenFileName(string) {
     return /^(nul|prn|con|lpt[0-9]|com[0-9])$/i.test(string);
+}
+
+function isAlphanumeric(string) {
+    if (/^[a-zA-Z0-9]+$/.test(string)) {
+        return true;
+    } else {
+        return 'Allowed characters: A-Z, 0-9';
+    }
 }
 
 function filterName(convention, input, type) {
@@ -106,6 +129,15 @@ function filterName(convention, input, type) {
             break;
     }
 
+    if (type === 'collection-suffix') {
+        input = '--' + _.trim(input, '-_');
+    }
+
+    if (type === 'path') {
+        input = path.normalize(input);
+        input = _.trim(input, path.sep);
+    }
+
     return input;
 }
 
@@ -148,9 +180,7 @@ function validateName(convention, input, type) {
 
         case 'collection-suffix':
 
-            let collectionSuffix = _.trim(input, '-_');
-
-            if (/^[a-zA-Z0-9-_]+$/.test(collectionSuffix)) {
+            if (/^[a-zA-Z0-9-_]+$/.test(input)) {
                 return true;
             } else {
                 return 'Allowed characters: 0-9, A-Z, dash and underscore';
