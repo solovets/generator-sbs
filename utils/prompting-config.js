@@ -64,12 +64,13 @@ function prompting (dest, test) {
             },
             validate: (input, answers) => {
 
+                let valid = true;
+
                 if (isBemDirectoryExists(path.join(dest, input)) !== true) {
 
 
                     const pathPoints = input.split(path.sep);
-                    let errorPoint = false,
-                        valid;
+                    let errorPoint = false;
 
                     pathPoints.some((item) => {
 
@@ -80,15 +81,17 @@ function prompting (dest, test) {
                         return valid !== true;
                     });
 
-                    if (errorPoint !== false) {
-                        return 'Error in ' + errorPoint;
+                    switch (errorPoint) {
+                        case false:
+                            answers.createBemDirectory = true;
+                            break;
+                        default:
+                            valid = 'Error in ' + errorPoint;
+                            break;
                     }
-
-
-                    answers.createBemDirectory = true;
                 }
 
-                return true;
+                return valid;
             }
         },
         {

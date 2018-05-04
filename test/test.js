@@ -83,8 +83,7 @@ describe('Helpers for sbs:config', () => {
             let testResults = '';
 
             // filter
-            suffix = _.trim(suffix);
-            suffix = '--' + _.trim(suffix, '-_');
+            suffix = to.filterName(null, suffix, 'collection-suffix');
 
             testResults += '#####utils/ -> helpers.js -> filterName("' + convention + '", input, type)\n\n';
             testResults += 'Input | Output\n----- | ------\n';

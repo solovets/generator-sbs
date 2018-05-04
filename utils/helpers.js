@@ -1,4 +1,5 @@
 const _ = require('underscore.string');
+const fs = require('fs');
 const path = require('path');
 const namingConventions = require('./namingConventions');
 
@@ -189,7 +190,9 @@ function validateName(convention, input, type) {
             break;
     }
 
-    if (type === 'modifier' && namingConventions[convention].keyValueModifierFormat && input.split(separator).length > 2) {
+    if (type === 'modifier' &&
+        namingConventions[convention].keyValueModifierFormat &&
+        input.split(separator).length > 2) {
         return 'Allowed format of modifier is key' + separator + 'value, not more';
     }
 
