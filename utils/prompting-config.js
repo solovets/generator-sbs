@@ -8,7 +8,7 @@ const extensions = require('./config/extensions');
 const $$ = require('./helpers');
 const isBemDirectoryExists = require('./isBemDirectoryExists');
 
-function prompting (dest, test) {
+function prompting(dest, test) {
 
     const prompts = [
         {
@@ -68,27 +68,10 @@ function prompting (dest, test) {
 
                 if (isBemDirectoryExists(path.join(dest, input)) !== true) {
 
+                    valid = $$.validatePath(input);
 
-                    const pathPoints = input.split(path.sep);
-                    let errorPoint = false;
+                    if (valid === true) answers.createBemDirectory = true;
 
-                    pathPoints.some((item) => {
-
-                        valid = $$.validateName(null, item, 'root');
-
-                        if (valid !== true) errorPoint = item;
-
-                        return valid !== true;
-                    });
-
-                    switch (errorPoint) {
-                        case false:
-                            answers.createBemDirectory = true;
-                            break;
-                        default:
-                            valid = 'Error in ' + errorPoint;
-                            break;
-                    }
                 }
 
                 return valid;
@@ -129,11 +112,12 @@ function prompting (dest, test) {
 
                 const re = new RegExp('\.' + answers.ext + '$');
 
-                let fileName = input;
-                if (re.test(input) === false)  fileName += $$.dot(answers.ext);
+                if (re.test(input) === false) {
+                    input += $$.dot(answers.ext);
+                }
 
-                if (fs.existsSync(path.join(dest, answers.bemDirectory, fileName))) {
-                    return fileName;
+                if (fs.existsSync(path.join(dest, answers.bemDirectory, input))) {
+                    return input;
                 } else {
                     input = $$.filterName(answers.namingConvention, input.replace(re, ''), 'root');
                     return input + $$.dot(answers.ext);
@@ -143,16 +127,12 @@ function prompting (dest, test) {
 
                 const re = new RegExp('\.' + answers.ext + '$');
                 const pathToRootStyles = path.join(dest, answers.bemDirectory, input);
-                let valid;
+                let valid = true;
 
-                if (fs.existsSync(pathToRootStyles)) {
-                    valid = true;
-                } else {
+                if (fs.existsSync(pathToRootStyles) !== true) {
                     valid = $$.validateName(answers.namingConvention, input.replace(re, ''), 'root');
 
-                    if (valid) {
-                        answers.createRootStylesFile = true;
-                    }
+                    if (valid) answers.createRootStylesFile = true;
                 }
 
                 return valid;

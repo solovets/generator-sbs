@@ -13,6 +13,7 @@ const helpers = {
     isAlphanumeric: isAlphanumeric,
     filterName: filterName,
     validateName: validateName,
+    validatePath: validatePath,
     trim: trimmer,
     dot: (string) => { return '.' + string },
     log: console.log,
@@ -201,6 +202,21 @@ function validateName(convention, input, type) {
     }
 
     return true;
+}
+
+function validatePath(input) {
+
+    const pathPoints = input.split(path.sep);
+    let valid = true;
+
+    pathPoints.some((item) => {
+
+        valid = validateName(null, item, 'root') ? true : 'Error in ' + item;
+
+        return valid !== true;
+    });
+
+    return valid;
 }
 
 module.exports = helpers;
