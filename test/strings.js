@@ -49,6 +49,17 @@ module.exports = {
         'path/',
         'some/con/path',
         'some path'
+    ],
+    extensions: [
+        '',
+        '  ',
+        '.',
+        '.ext',
+        'ext',
+        ' .ext',
+        '.some-ext',
+        '.some ext ',
+        'some1ext'
     ]
 
 };

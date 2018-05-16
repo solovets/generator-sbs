@@ -26,11 +26,11 @@ describe(table.title, () => {
         result += table.head;
 
         data.suffixes.forEach((suffix) => {
-            let i = _.isBlank(suffix) ? '_whitespace(s)_' : suffix;
-            let f = $$.filterName(null, suffix, 'collection-suffix');
-            let v = $$.validateName(null, f, 'collection-suffix');
+            let input = _.isBlank(suffix) ? '_whitespace(s)_' : suffix;
+            let filtered = $$.filterName(null, suffix, 'collection-suffix');
+            let validated = $$.validateName(null, filtered, 'collection-suffix');
 
-            result += i + ' | ' + f + ' | ' + v + '\n';
+            result += input + ' | ' + filtered + ' | ' + validated + '\n';
         });
 
         fs.appendFileSync('test/results/config-prompting.md', result, 'utf8');
@@ -42,11 +42,27 @@ describe(table.title, () => {
         result += table.head;
 
         data.paths.forEach((p) => {
-            let i = _.isBlank(p) ? '_whitespace(s)_' : p;
-            let f = $$.filterName(null, p, 'path');
-            let v = $$.validatePath(f);
+            let input = _.isBlank(p) ? '_whitespace(s)_' : p;
+            let filtered = $$.filterName(null, p, 'path');
+            let validated = $$.validatePath(filtered);
 
-            result += i + ' | ' + f + ' | ' + v + '\n';
+            result += input + ' | ' + filtered + ' | ' + validated + '\n';
+        });
+
+        fs.appendFileSync('test/results/config-prompting.md', result, 'utf8');
+    });
+
+    it('Filter and validate custom extension input', () => {
+        let result = '';
+        result += '#####Filter and validate custom extension input\n\n';
+        result += table.head;
+
+        data.extensions.forEach((ext) => {
+            let input = _.isBlank(ext) ? '_whitespace(s)_' : ext;
+            let filtered = $$.trim(ext, ' .');
+            let validated = $$.isAlphanumeric(filtered);
+
+            result += input + ' | ' + filtered + ' | ' + validated + '\n';
         });
 
         fs.appendFileSync('test/results/config-prompting.md', result, 'utf8');
