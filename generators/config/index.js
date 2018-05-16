@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const mkdirp = require('mkdirp');
 
-const prompting = require('../../utils/prompting-config');
+const prompting = require('../../utils/config/prompting');
 const namingConventions = require('../../utils/namingConventions');
 
 module.exports = class extends sbs {

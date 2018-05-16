@@ -15,7 +15,7 @@ const helpers = {
     validateName: validateName,
     validatePath: validatePath,
     trim: trimmer,
-    dot: (string) => { return '.' + string },
+    dot: dot,
     log: console.log,
     json: (obj) => {
         JSON.stringify(obj, null, 4)
@@ -38,6 +38,15 @@ function trimmer(string, chars) {
     return chars ? _.trim(string, chars) : _.trim(string);
 }
 
+function dot(input, ext) {
+    const re = new RegExp('\.' + ext + '$');
+
+    if (re.test(input) === false) {
+        input = input + '.' + ext;
+    }
+
+    return input;
+}
 
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -182,6 +191,10 @@ function validateName(convention, input, type) {
 
         case 'collection-suffix':
 
+            if (input === '--') {
+                return 'Can\'t be empty';
+            }
+
             if (/^[a-zA-Z0-9-_]+$/.test(input)) {
                 return true;
             } else {
@@ -209,9 +222,15 @@ function validatePath(input) {
     const pathPoints = input.split(path.sep);
     let valid = true;
 
-    pathPoints.some((item) => {
+    pathPoints.some((item, index) => {
 
-        valid = validateName(null, item, 'root') ? true : 'Error in ' + item;
+        if (validateName(null, item, 'root') !== true) {
+            valid = 'Error in ' + item;
+        }
+
+        if (index === 0 && item === '.') {
+            valid = true;
+        }
 
         return valid !== true;
     });

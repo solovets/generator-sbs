@@ -27,10 +27,28 @@ module.exports = {
     ],
 
     suffixes: [
+        '',
+        '  ',
         '--suffix',
-        '--suffix_',
+        ' --suffix_',
         '--collection_suffix',
-        '--collection suffix'
+        '--collection suffix',
+        'suffix',
+        'collection suffix',
+        'Suffix',
+        'Collection Suffix'
+    ],
+
+    paths: [
+        '',
+        '  ',
+        './',
+        'some/path',
+        ' ./some/path/',
+        'some\\path ',
+        'path/',
+        'some/con/path',
+        'some path'
     ]
 
 };

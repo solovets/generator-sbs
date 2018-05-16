@@ -2,11 +2,11 @@ const path = require('path');
 const fs = require('fs');
 const _ = require('underscore.string');
 
-const namingConventions = require('./namingConventions');
-const extensions = require('./config/extensions');
+const namingConventions = require('../namingConventions');
+const extensions = require('./extensions');
 
-const $$ = require('./helpers');
-const isBemDirectoryExists = require('./isBemDirectoryExists');
+const $$ = require('../helpers');
+const isBemDirectoryExists = require('../isBemDirectoryExists');
 
 function prompting(dest, test) {
 
@@ -110,27 +110,22 @@ function prompting(dest, test) {
             },
             filter: function (input, answers) {
 
-                const re = new RegExp('\.' + answers.ext + '$');
-
-                if (re.test(input) === false) {
-                    input += $$.dot(answers.ext);
-                }
+                input = $$.dot(input, answers.ext);
 
                 if (fs.existsSync(path.join(dest, answers.bemDirectory, input))) {
                     return input;
                 } else {
-                    input = $$.filterName(answers.namingConvention, input.replace(re, ''), 'root');
-                    return input + $$.dot(answers.ext);
+                    input = $$.filterName(answers.namingConvention, path.parse(input).name, 'root');
+                    return $$.dot(input, answers.ext);
                 }
             },
             validate: function (input, answers) {
 
-                const re = new RegExp('\.' + answers.ext + '$');
                 const pathToRootStyles = path.join(dest, answers.bemDirectory, input);
                 let valid = true;
 
                 if (fs.existsSync(pathToRootStyles) !== true) {
-                    valid = $$.validateName(answers.namingConvention, input.replace(re, ''), 'root');
+                    valid = $$.validateName(answers.namingConvention, path.parse(input).name, 'root');
 
                     if (valid) answers.createRootStylesFile = true;
                 }
