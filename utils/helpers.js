@@ -97,6 +97,11 @@ function filterName(convention, input, type) {
 
     input = _.trim(input);
 
+    if (/^[_a-zA-Z0-9- ]+$/.test(input) !== true && type !== 'path') {
+        // return input to fail it while validation
+        return input;
+    }
+
     switch (convention) {
         case 'classic':
 
@@ -178,6 +183,12 @@ function validateName(convention, input, type) {
             break;
 
         case 'root':
+
+            let fileinfo = path.parse(input);
+
+            if (fileinfo.root || fileinfo.dir) {
+                return 'Only filename expected';
+            }
 
             if (forbiddenFileName(input)) {
                 return 'Forbidden file name';

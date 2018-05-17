@@ -112,20 +112,23 @@ function prompting(dest, test) {
 
                 input = $$.dot(input, answers.ext);
 
+                const re = new RegExp('\.' + answers.ext + '$');
+
                 if (fs.existsSync(path.join(dest, answers.bemDirectory, input))) {
                     return input;
                 } else {
-                    input = $$.filterName(answers.namingConvention, path.parse(input).name, 'root');
+                    input = $$.filterName(answers.namingConvention, input.replace(re, ''), 'root');
                     return $$.dot(input, answers.ext);
                 }
             },
             validate: function (input, answers) {
 
                 const pathToRootStyles = path.join(dest, answers.bemDirectory, input);
+                const re = new RegExp('\.' + answers.ext + '$');
                 let valid = true;
 
                 if (fs.existsSync(pathToRootStyles) !== true) {
-                    valid = $$.validateName(answers.namingConvention, path.parse(input).name, 'root');
+                    valid = $$.validateName(answers.namingConvention, input.replace(re, ''), 'root');
 
                     if (valid) answers.createRootStylesFile = true;
                 }

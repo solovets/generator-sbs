@@ -60,6 +60,28 @@ module.exports = {
         '.some-ext',
         '.some ext ',
         'some1ext'
+    ],
+
+    dot: [
+        'filename',
+        'filename.ext',
+        'filename..some'
+    ],
+    filenames: [
+        'filename',
+        'filename.ext',
+        'filename..some',
+        '.ext',
+        '',
+        '  ',
+        'con.ext',
+        'lpt',
+        'file/name.ext',
+        '/filename.ext',
+        'file-name',
+        '-file_name',
+        'filename_',
+        'file name'
     ]
 
 };
