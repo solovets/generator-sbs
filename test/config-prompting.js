@@ -118,12 +118,6 @@ describe(table.title, () => {
 
             fs.appendFileSync('test/results/config-prompting.md', result, 'utf8');
         });
-
-        console.log(path.parse('ssd/ext.md'));
-        console.log(path.parse('ssd/.md'));
-        console.log(path.parse('.md'));
-        console.log(path.parse('/d.md'));
-        console.log(path.parse('/dr/.md'));
     });
 
 });
