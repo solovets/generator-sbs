@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
     manipulate: [
         'test',
@@ -82,6 +84,31 @@ module.exports = {
         '-file_name',
         'filename_',
         'file name'
+    ],
+    configs: [
+        {
+            "namingConvention": "classic",
+            "useCollections": false,
+            "createBemDirectory": true,
+            "bemDirectory": path.normalize('test/results/configs/dir-should-be-created'),
+            "ext": "scss",
+            "createRootStylesFile": true,
+            "rootStylesFile": "file-should-be-created.scss",
+            "prefixForElement": "__",
+            "prefixForModifier": "_"
+        },
+        {
+            "namingConvention": "classic",
+            "useCollections": false,
+            "createBemDirectory": false,
+            "bemDirectory": path.normalize('test/results/configs/dir-exists'),
+            "ext": "scss",
+            "createRootStylesFile": true,
+            "rootStylesFile": "file-should-be-created.scss",
+            "prefixForElement": "__",
+            "prefixForModifier": "_"
+        }
+
     ]
 
 };

@@ -1,0 +1,1 @@
+This files used to keep ./test/results/configs/dir-exists in Git
