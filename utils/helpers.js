@@ -1,13 +1,25 @@
 const _ = require('underscore.string');
-
+const fs = require('fs');
+const path = require('path');
 const namingConventions = require('./namingConventions');
 
 const helpers = {
     merge: merge,
     capitalize: capitalize,
+    lowFirstLetter: lowFirstLetter,
     dasherize: dasherize,
+    classifyModifier: classifyModifier,
+    forbiddenFileName: forbiddenFileName,
+    isAlphanumeric: isAlphanumeric,
     filterName: filterName,
-    validateName: validateName
+    validateName: validateName,
+    validatePath: validatePath,
+    trim: trimmer,
+    dot: dot,
+    log: console.log,
+    json: (obj) => {
+        JSON.stringify(obj, null, 4)
+    }
 };
 
 // This function merge object {a} and object {b}
@@ -20,6 +32,20 @@ function merge(a, b) {
     }
 
     return a;
+}
+
+function trimmer(string, chars) {
+    return chars ? _.trim(string, chars) : _.trim(string);
+}
+
+function dot(input, ext) {
+    const re = new RegExp('\.' + ext + '$');
+
+    if (re.test(input) === false) {
+        input = input + '.' + ext;
+    }
+
+    return input;
 }
 
 function capitalize(string) {
@@ -52,6 +78,14 @@ function forbiddenFileName(string) {
     return /^(nul|prn|con|lpt[0-9]|com[0-9])$/i.test(string);
 }
 
+function isAlphanumeric(string) {
+    if (/^[a-zA-Z0-9]+$/.test(string)) {
+        return true;
+    } else {
+        return 'Allowed characters: A-Z, 0-9';
+    }
+}
+
 function filterName(convention, input, type) {
 
     let separator;
@@ -62,6 +96,11 @@ function filterName(convention, input, type) {
     }
 
     input = _.trim(input);
+
+    if (/^[_a-zA-Z0-9- ]+$/.test(input) !== true && type !== 'path') {
+        // return input to fail it while validation
+        return input;
+    }
 
     switch (convention) {
         case 'classic':
@@ -106,6 +145,15 @@ function filterName(convention, input, type) {
             break;
     }
 
+    if (type === 'collection-suffix') {
+        input = '--' + _.trim(input, '-_');
+    }
+
+    if (type === 'path') {
+        input = path.normalize(input);
+        input = _.trim(input, path.sep);
+    }
+
     return input;
 }
 
@@ -136,6 +184,12 @@ function validateName(convention, input, type) {
 
         case 'root':
 
+            let fileinfo = path.parse(input);
+
+            if (fileinfo.root || fileinfo.dir) {
+                return 'Only filename expected';
+            }
+
             if (forbiddenFileName(input)) {
                 return 'Forbidden file name';
             }
@@ -148,9 +202,11 @@ function validateName(convention, input, type) {
 
         case 'collection-suffix':
 
-            let collectionSuffix = _.trim(input, '-_');
+            if (input === '--') {
+                return 'Can\'t be empty';
+            }
 
-            if (/^[a-zA-Z0-9-_]+$/.test(collectionSuffix)) {
+            if (/^[a-zA-Z0-9-_]+$/.test(input)) {
                 return true;
             } else {
                 return 'Allowed characters: 0-9, A-Z, dash and underscore';
@@ -159,7 +215,9 @@ function validateName(convention, input, type) {
             break;
     }
 
-    if (type === 'modifier' && namingConventions[convention].keyValueModifierFormat && input.split(separator).length > 2) {
+    if (type === 'modifier' &&
+        namingConventions[convention].keyValueModifierFormat &&
+        input.split(separator).length > 2) {
         return 'Allowed format of modifier is key' + separator + 'value, not more';
     }
 
@@ -168,6 +226,27 @@ function validateName(convention, input, type) {
     }
 
     return true;
+}
+
+function validatePath(input) {
+
+    const pathPoints = input.split(path.sep);
+    let valid = true;
+
+    pathPoints.some((item, index) => {
+
+        if (validateName(null, item, 'root') !== true) {
+            valid = 'Error in ' + item;
+        }
+
+        if (index === 0 && item === '.') {
+            valid = true;
+        }
+
+        return valid !== true;
+    });
+
+    return valid;
 }
 
 module.exports = helpers;
