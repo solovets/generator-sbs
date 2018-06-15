@@ -13,14 +13,14 @@ var sbs = require('yeoman-generator'),
     },
 
     prompting = require('../../utils/prompting-sbs'),
-    helpTo = require('../../utils/helpers'),
+    $$ = require('../../utils/helpers'),
     isBemDirectoryExists = require('../../utils/isBemDirectoryExists'),
     getCurrentStructure = require('../../utils/current-structure'),
     generatorConfigKeys = require('../../utils/generatorConfigKeys');
 
-module.exports = sbs.Base.extend({
+module.exports = class extends sbs ({
 
-    initializing: function () {
+    initializing() {
 
         var currentConfig = this.config.getAll(),
             bemDirPath,
@@ -50,9 +50,9 @@ module.exports = sbs.Base.extend({
         }
 
 
-    },
+    }
 
-    prompting: function () {
+    prompting() {
 
         var generatorConfig = this.config.getAll(),
             bemDirPath = path.join(this.destinationRoot(), generatorConfig.bemDirectory),
@@ -65,14 +65,14 @@ module.exports = sbs.Base.extend({
 
             if (this.answers.creatingComponentType === 'block') {
                 this.prompt(prompting.describeCreatedBlock(generatorConfig, currentStructure, this.answers)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
+                    this.answers = $$.merge(this.answers, answers);
                     done();
                 }.bind(this));
             }
 
             if (this.answers.creatingComponentType === 'element') {
                 this.prompt(prompting.describeCreatedElement(generatorConfig, currentStructure, this.answers)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
+                    this.answers = $$.merge(this.answers, answers);
                     done();
                 }.bind(this));
             }
@@ -80,15 +80,15 @@ module.exports = sbs.Base.extend({
             if (this.answers.creatingComponentType === 'modifier') {
 
                 this.prompt(prompting.describeCreatedModifier(generatorConfig, currentStructure, this.answers)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
+                    this.answers = $$.merge(this.answers, answers);
                     done();
                 }.bind(this));
             }
 
         }.bind(this));
-    },
+    }
 
-    configuring: function () {
+    configuring() {
         switch (this.answers.creatingComponentType) {
             case 'element':
                 this.answers.creatingComponentName = this.config.get('prefixForElement') + this.answers.creatingComponentName;
@@ -104,9 +104,9 @@ module.exports = sbs.Base.extend({
         if (this.answers.hasOwnProperty('parentCollectionOfBlock') === false) {
             this.answers.parentCollectionOfBlock = '';
         }
-    },
+    }
 
-    writing: function () {
+    writing() {
         var config = this.config.getAll(),
             answers = this.answers,
             templatePath = this.answers.creatingComponentType + '.tmpl',
@@ -196,7 +196,7 @@ module.exports = sbs.Base.extend({
                 var content = new InjectString(data, {
                     newlines: true,
                     delimiters: ['//<=', '=>'],
-                    tag: 'bem' + helpTo.capitalize(answers.creatingComponentType) + 's'
+                    tag: 'bem' + $$.capitalize(answers.creatingComponentType) + 's'
                 });
                 content.append('@import "' + path.join(answers.pathToComponent, component).split(path.sep).join('/') + '";');
 
