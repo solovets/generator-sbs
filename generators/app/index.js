@@ -16,7 +16,7 @@ var sbs = require('yeoman-generator'),
     $$ = require('../../utils/helpers'),
     isBemDirectoryExists = require('../../utils/isBemDirectoryExists'),
     getCurrentStructure = require('../../utils/current-structure'),
-    generatorConfigKeys = require('../../utils/generatorConfigKeys');
+    generatorConfigInterface = require('../../utils/generatorConfigInterface');
 
 module.exports = class extends sbs ({
 
@@ -28,10 +28,17 @@ module.exports = class extends sbs ({
 
         // Check for all needed settings
 
-        generatorConfigKeys.some(function (key) {
+        for (let configKey in generatorConfigInterface) {
+
+            if (currentConfig.hasOwnProperty(configKey) === false) {
+
+            }
+        }
+
+        generatorConfigInterface.some(function (key) {
             if (currentConfig.hasOwnProperty(key) === false) {
-                log('Can\'t find key ' +  key + ' in your config.');
-                log('You can run yo sbs:config to set prefered settings.');
+                this.log('Can\'t find key ' +  key + ' in your config.');
+                this.log('You can run yo sbs:config to set prefered settings.');
                 process.exit(1);
             }
         });
