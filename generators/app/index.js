@@ -20,45 +20,6 @@ var sbs = require('yeoman-generator'),
 
 module.exports = class extends sbs ({
 
-    initializing() {
-
-        var currentConfig = this.config.getAll(),
-            bemDirPath,
-            bemDirectoryExists;
-
-        // Check for all needed settings
-
-        for (let configKey in generatorConfigInterface) {
-
-            if (currentConfig.hasOwnProperty(configKey) === false) {
-
-            }
-        }
-
-        generatorConfigInterface.some(function (key) {
-            if (currentConfig.hasOwnProperty(key) === false) {
-                this.log('Can\'t find key ' +  key + ' in your config.');
-                this.log('You can run yo sbs:config to set prefered settings.');
-                process.exit(1);
-            }
-        });
-
-        // Check if BEM directory exists
-
-        bemDirPath = path.join(this.destinationRoot(), this.config.get('bemDirectory'));
-        bemDirectoryExists = isBemDirectoryExists(bemDirPath);
-
-        if (bemDirectoryExists === true) {
-            log('Your BEM directory is ' + bemDirPath);
-        } else {
-            log(bemDirectoryExists);
-            log('You can run yo sbs:config to set prefered settings.');
-            process.exit(1);
-        }
-
-
-    }
-
     prompting() {
 
         var generatorConfig = this.config.getAll(),

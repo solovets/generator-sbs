@@ -18,7 +18,7 @@ module.exports = {
     },
     'rootStylesFile': {
         type: 'string'
-    }
+    },
     'prefixForElement': {
         type: 'string'
     },
