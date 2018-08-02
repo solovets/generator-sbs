@@ -1,6 +1,6 @@
-var existingBlocks = require('./current-structure');
 var path = require('path');
-var helpTo = require('./helpers');
+const cEnum = require('../components-emuns');
+var $$ = require('../helpers');
 var inquirer = require('inquirer');
 var _ = require('underscore.string');
 
@@ -14,7 +14,7 @@ var prompting = {
 function getBlocks(currentStructure, useCollections) {
     var choicesArray = [];
 
-    currentStructure.blocks.forEach(function(block) {
+    currentStructure.blocks.forEach((block) => {
         choicesArray.push({
             name: block.name,
             value: {
@@ -25,7 +25,7 @@ function getBlocks(currentStructure, useCollections) {
     });
 
     if (useCollections) {
-        currentStructure.collections.forEach(function(collection) {
+        currentStructure.collections.forEach((collection) => {
             collection.blocks.forEach(function(block) {
                 choicesArray.push({
                     name: block.name + ' @ ' + collection.name,
@@ -41,20 +41,6 @@ function getBlocks(currentStructure, useCollections) {
     return choicesArray;
 }
 
-function askName(convention, type, separator) {
-    return {
-        type: 'input',
-        name: 'creatingComponentName',
-        message: 'Please define name:',
-        filter: function (input) {
-            return helpTo.filterName(convention, input, type, separator);
-        },
-        validate: function (input, answers) {
-            return helpTo.validateName(convention, input, type, separator);
-        }
-    }
-}
-
 function defineCreaedComponent(generatorConfig) {
 
     return [
@@ -64,18 +50,29 @@ function defineCreaedComponent(generatorConfig) {
             message: 'What would you like to crate?',
             choices: [
                 {
-                    name: 'block',
+                    name: cEnum.props[1].name,
                     value: 'block'
                 },
                 {
-                    name: generatorConfig.prefixForElement + 'element',
+                    name: generatorConfig.prefixForElement + cEnum.props[2].name,
                     value: 'element'
                 },
                 {
-                    name: generatorConfig.prefixForModifier + 'modifier',
+                    name: generatorConfig.prefixForModifier + cEnum.props[3].name,
                     value: 'modifier'
                 }
             ]
+        },
+        {
+            type: 'input',
+            name: 'creatingComponentName',
+            message: 'Please define name:',
+            filter: (input, answers) => {
+                return $$.filterName(generatorConfig.namingConvention, input, answers.creatingComponentType);
+            },
+            validate: (input, answers) => {
+                return $$.validateName(generatorConfig.namingConvention, input, answers.creatingComponentType);
+            }
         }
     ];
 }
@@ -83,7 +80,6 @@ function defineCreaedComponent(generatorConfig) {
 function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers) {
 
     return [
-        askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
             type: 'list',
             name: 'putBlockInCollection',
@@ -104,11 +100,13 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
             type: 'list',
             name: 'parentCollectionOfBlock',
             message: 'Please choose Collection for block:',
-            when: answers.putBlockInCollection,
-            choices: function () {
-                var choicesArray = [];
+            when: (answers) => {
+                return answers.putBlockInCollection;
+            },
+            choices: () => {
+                let choicesArray = [];
 
-                currentStructure.collections.forEach(function (collection) {
+                currentStructure.collections.forEach((collection) => {
                     choicesArray.push({
                         name: collection.name,
                         value: collection.name
@@ -129,17 +127,19 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
         {
             type: 'input',
             name: 'newParentCollectionOfBlock',
-            when: answers.parentCollectionOfBlock === false,
+            when: (answers) => {
+                return answers.parentCollectionOfBlock === false;
+            },
             message: 'Please define collection\'s name, suffix ' + generatorConfig.collectionSuffix + ' will be added automatically',
-            filter: function (input) {
+            filter: (input) => {
                 input = input.replace(new RegExp(generatorConfig.collectionSuffix + '$', 'i'), '');
                 input = _.ltrim(input);
                 input = _.rtrim(input, '-_');
 
                 return input;
             },
-            validate: function (input, answers) {
-                var valid = helpTo.validateName(generatorConfig.namingConvention, input, null, null);
+            validate: (input, answers) => {
+                var valid = $$.validateName(generatorConfig.namingConvention, input, null, null);
 
                 if (valid === true) {
                     answers.parentCollectionOfBlock = input + generatorConfig.collectionSuffix;
@@ -154,7 +154,6 @@ function describeCreatedBlock(generatorConfig, currentStructure, previousAnswers
 function describeCreatedElement(generatorConfig, currentStructure, previousAnswers) {
 
     return [
-        askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
             type: 'list',
             name: 'parentBlock',
@@ -167,7 +166,6 @@ function describeCreatedElement(generatorConfig, currentStructure, previousAnswe
 function describeCreatedModifier(generatorConfig, currentStructure, previousAnswers) {
 
     return [
-        askName(generatorConfig.namingConvention, previousAnswers.creatingComponentType, generatorConfig.prefixForModifier),
         {
             type: 'list',
             name: 'modifierFor',
@@ -186,16 +184,16 @@ function describeCreatedModifier(generatorConfig, currentStructure, previousAnsw
         {
             type: 'list',
             name: 'parentBlock',
-            message: function (answers) {
-                var str;
+            message: (answers) => {
+                let str = 'Block';
 
                 if (answers.modifierFor === 'forElement') {
-                    str = ' that contains ' + generatorConfig.prefixForElement + 'element';
+                    str += ' that contains ' + generatorConfig.prefixForElement + 'element';
                 } else {
-                    str = ' to modify';
+                    str += ' to modify';
                 }
 
-                return 'Block' + str;
+                return str;
             },
             choices: getBlocks(currentStructure, generatorConfig.useCollections)
         },
@@ -203,11 +201,11 @@ function describeCreatedModifier(generatorConfig, currentStructure, previousAnsw
             type: 'list',
             name: 'parentElement',
             message: 'Please define parent ' + generatorConfig.prefixForElement + 'element of ' + generatorConfig.prefixForModifier + 'modifier',
-            when: function(answers) {
+            when: (answers) => {
 				answers.parentElement = '';
                 return answers.modifierFor === 'forElement';
             },
-            choices: function(answers) {
+            choices: (answers) => {
 
                 var blocksArray,
                     blockPoint,
@@ -217,17 +215,17 @@ function describeCreatedModifier(generatorConfig, currentStructure, previousAnsw
                 if (answers.parentBlock.collectionName === '')  {
                     blocksArray = currentStructure.blocks;
                 } else {
-                    collectionPoint = currentStructure.collections.filter(function (collection) {
+                    collectionPoint = currentStructure.collections.filter((collection) => {
                         return collection.name === answers.parentBlock.collectionName;
                     });
                     blocksArray = collectionPoint[0].blocks;
                 }
 
-                blockPoint = blocksArray.filter(function(block) {
+                blockPoint = blocksArray.filter((block) => {
                     return block.name === answers.parentBlock.blockName;
                 });
 
-                blockPoint[0].elements.forEach(function (element) {
+                blockPoint[0].elements.forEach((element) => {
                     choicesArray.push({
                         name: element.name,
                         value: element.name
