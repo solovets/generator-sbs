@@ -7,201 +7,168 @@ var sbs = require('yeoman-generator'),
     chalk = require('chalk'),
     InjectString = require('inject-string'),
 
-    log = console.log,
-    json = function (obj) {
-        return JSON.stringify(obj, null, 4);
-    },
+    prompting = require('../../utils/sbs/prompting'),
+    $$ = require('../../utils/helpers'),
+    getCurrentStructure = require('../../utils/current-structure');
 
-    prompting = require('../../utils/prompting-sbs'),
-    helpTo = require('../../utils/helpers'),
-    isBemDirectoryExists = require('../../utils/isBemDirectoryExists'),
-    getCurrentStructure = require('../../utils/current-structure'),
-    generatorConfigKeys = require('../../utils/generatorConfigKeys');
+module.exports = class extends sbs {
 
-module.exports = sbs.Base.extend({
+    prompting() {
 
-    initializing: function () {
-
-        var currentConfig = this.config.getAll(),
-            bemDirPath,
-            bemDirectoryExists;
-
-        // Check for all needed settings
-
-        generatorConfigKeys.some(function (key) {
-            if (currentConfig.hasOwnProperty(key) === false) {
-                log('Can\'t find key ' +  key + ' in your config.');
-                log('You can run yo sbs:config to set prefered settings.');
-                process.exit(1);
-            }
-        });
-
-        // Check if BEM directory exists
-
-        bemDirPath = path.join(this.destinationRoot(), this.config.get('bemDirectory'));
-        bemDirectoryExists = isBemDirectoryExists(bemDirPath);
-
-        if (bemDirectoryExists === true) {
-            log('Your BEM directory is ' + bemDirPath);
-        } else {
-            log(bemDirectoryExists);
-            log('You can run yo sbs:config to set prefered settings.');
-            process.exit(1);
-        }
-
-
-    },
-
-    prompting: function () {
-
-        var generatorConfig = this.config.getAll(),
-            bemDirPath = path.join(this.destinationRoot(), generatorConfig.bemDirectory),
-            currentStructure = getCurrentStructure(generatorConfig, bemDirPath),
+        const config = this.config.getAll(),
+            bemDirPath = path.join(this.destinationRoot(), config.bemDirectory),
+            currentStructure = getCurrentStructure(config, bemDirPath),
             done = this.async();
 
-        this.prompt(prompting.defineCreatedComponent(generatorConfig)).then(function(answers) {
+        this.prompt(prompting.defineCreatedComponent(config)).then((answers) => {
 
             this.answers = answers;
+            let describe = 'describeCreated' + $$.capitalize(this.answers.creatingComponentType);
 
-            if (this.answers.creatingComponentType === 'block') {
-                this.prompt(prompting.describeCreatedBlock(generatorConfig, currentStructure, this.answers)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
-                    done();
-                }.bind(this));
-            }
+            this.prompt(prompting[describe](config, currentStructure, this.answers)).then((answers) => {
+                this.answers = $$.merge(this.answers, answers);
+                done();
+            });
+        });
+    }
 
-            if (this.answers.creatingComponentType === 'element') {
-                this.prompt(prompting.describeCreatedElement(generatorConfig, currentStructure, this.answers)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
-                    done();
-                }.bind(this));
-            }
+    configuring() {
 
-            if (this.answers.creatingComponentType === 'modifier') {
-
-                this.prompt(prompting.describeCreatedModifier(generatorConfig, currentStructure, this.answers)).then(function(answers) {
-                    this.answers = helpTo.merge(this.answers, answers);
-                    done();
-                }.bind(this));
-            }
-
-        }.bind(this));
-    },
-
-    configuring: function () {
-        switch (this.answers.creatingComponentType) {
-            case 'element':
-                this.answers.creatingComponentName = this.config.get('prefixForElement') + this.answers.creatingComponentName;
-                break;
-            case 'modifier':
-                this.answers.creatingComponentName = this.config.get('prefixForModifier') + this.answers.creatingComponentName;
-                break;
+        // add prefix for element or modifier
+        if (this.answers.creatingComponentType !== 'block') {
+            let prefixFor = this.config.get('prefixFor' + $$.capitalize(this.answers.creatingComponentType));
+            this.answers.creatingComponentName = prefixFor + this.answers.creatingComponentName;
         }
 
-        this.answers.componentFileName = this.answers.creatingComponentName + '.' + this.config.get('ext');
+        // just to make code more readable
         this.answers.componentDir = this.answers.creatingComponentName;
-        this.answers.pathToComponent = '';
+
+        // filename with extension
+        this.answers.creatingComponentFileBase = $$.dot(this.answers.creatingComponentName, this.config.get('ext'));
+        
+        // put empty string as value for parentCollectionOfBlock if block doesn't have parent collection
         if (this.answers.hasOwnProperty('parentCollectionOfBlock') === false) {
             this.answers.parentCollectionOfBlock = '';
         }
-    },
+    }
 
-    writing: function () {
-        var config = this.config.getAll(),
+    writing() {
+
+        const  config = this.config.getAll(),
             answers = this.answers,
             templatePath = this.answers.creatingComponentType + '.tmpl',
-            root = path.join(this.destinationRoot(), config.bemDirectory),
-            destPath,
-			component;
+            root = path.join(this.destinationRoot(), config.bemDirectory);
 
-        log(json(answers));
+        let result = {
+            collection: '',
+            file: '',
+            export: '',
+            path: ''
+
+        };
+
+       this.log($$.json(answers));
 
         function getDestPathForBlock() {
-            answers.pathToComponent = answers.parentCollectionOfBlock;
 
-            answers.exportTo = path.join(root, config.rootStylesFile);
-
-            component = path.join(answers.componentDir, answers.componentFileName);
-            return path.join(root, answers.parentCollectionOfBlock, component);
+            return {
+                collection: answers.parentCollectionOfBlock,
+                file: answers.creatingComponentName,
+                export: path.join(root, config.rootStylesFile),
+                path: path.join(
+                    root,
+                    answers.parentCollectionOfBlock,
+                    answers.componentDir,
+                    answers.creatingComponentFileBase
+                )
+            };
         }
 
         function getDestPathForElement() {
 
-            component = path.join(answers.componentDir, answers.parentBlock.blockName + answers.componentFileName);
-
-            answers.exportTo = path.join(
-                root,
-                answers.parentBlock.collectionName,
-                answers.parentBlock.blockName,
-                answers.parentBlock.blockName + '.' + config.ext
-            );
-
-            return path.join(root, answers.parentBlock.collectionName, answers.parentBlock.blockName, component);
+            return {
+                collection: '',
+                file: answers.parentBlock.blockName + answers.creatingComponentName,
+                export: path.join(
+                    root,
+                    answers.parentBlock.collectionName,
+                    answers.parentBlock.blockName,
+                    $$.dot(answers.parentBlock.blockName, config.ext)
+                ),
+                path: path.join(
+                    root,
+                    answers.parentBlock.collectionName,
+                    answers.parentBlock.blockName,
+                    answers.componentDir,
+                    answers.parentBlock.blockName + answers.creatingComponentFileBase
+                )
+            };
         }
 
         function getDestPathForModifier() {
 
-            switch (answers.modifierFor) {
-                case 'forBlock':
-					answers.exportTo = path.join(
-						root,
-						answers.parentBlock.collectionName,
-						answers.parentBlock.blockName,
-						answers.parentBlock.blockName + '.' + config.ext
-					);
-                    component = path.join(answers.componentDir, answers.parentBlock.blockName + answers.componentFileName);
-                    break;
-                case 'forElement':
-					answers.exportTo = path.join(
-						root,
-						answers.parentBlock.collectionName,
-						answers.parentBlock.blockName,
-						answers.parentElement,
-						answers.parentElement + '.' + config.ext
-					);
-                    component = path.join(answers.componentDir, answers.parentBlock.blockName + answers.parentElement + answers.componentFileName);
-                    break;
-            }
-
-            return path.join(root, answers.parentBlock.collectionName, answers.parentBlock.blockName, answers.parentElement, component);
+            return {
+                collection: '',
+                file: answers.parentBlock.blockName + answers.parentElement + answers.creatingComponentName,
+                export: path.join(
+                    root,
+                    answers.parentBlock.collectionName,
+                    answers.parentBlock.blockName,
+                    answers.parentElement,
+                    $$.dot(answers.parentBlock.blockName + (!!answers.parentElement ? answers.parentElement : ''), config.ext)
+                ),
+                path: path.join(
+                    root,
+                    answers.parentBlock.collectionName,
+                    answers.parentBlock.blockName,
+                    answers.parentElement,
+                    answers.componentDir,
+                    answers.parentBlock.blockName + answers.parentElement + answers.creatingComponentFileBase
+                )
+    
+            };
         }
 
         switch (answers.creatingComponentType) {
             case 'block':
-                destPath = getDestPathForBlock();
+                result = getDestPathForBlock();
                 break;
             case 'element':
-                destPath = getDestPathForElement();
+                result = getDestPathForElement();
                 break;
             case 'modifier':
-                destPath = getDestPathForModifier();
+                result = getDestPathForModifier();
                 break;
         }
 
 
-        if (fs.existsSync(destPath)) {
-            log(chalk.red('Error:\n' + destPath + ' already exists'));
+        if (fs.existsSync(result.path)) {
+            this.log(chalk.red('Error:\n' + result.path + ' already exists'));
             process.exit(1);
         } else {
 			this.fs.copyTpl(
 				this.templatePath(templatePath),
-                this.destinationPath(destPath),
+                this.destinationPath(result.path),
                 answers
-			);
-
-            fs.readFile(answers.exportTo, 'utf8', function (err, data) {
+            );
+            
+            fs.readFile(result.export, 'utf8', function (err, data) {
                 if (err) {
                     throw err;
                 }
-                var content = new InjectString(data, {
+                let content = new InjectString(data, {
                     newlines: true,
                     delimiters: ['//<=', '=>'],
-                    tag: 'bem' + helpTo.capitalize(answers.creatingComponentType) + 's'
+                    tag: 'bem' + $$.capitalize(answers.creatingComponentType) + 's'
                 });
-                content.append('@import "' + path.join(answers.pathToComponent, component).split(path.sep).join('/') + '";');
+                content.append('@import "' + path.join(
+                    result.collection,
+                    answers.componentDir,
+                    result.file
+                ).split(path.sep).join('/') + '";');
 
-                fs.writeFileSync(answers.exportTo, content, 'utf8');
+                fs.writeFileSync(result.export, content, 'utf8');
             });
         }
     }
-});
+};
