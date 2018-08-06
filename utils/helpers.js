@@ -18,7 +18,7 @@ const helpers = {
     dot: dot,
     log: console.log,
     json: (obj) => {
-        JSON.stringify(obj, null, 4)
+        return JSON.stringify(obj, null, 4);
     }
 };
 
