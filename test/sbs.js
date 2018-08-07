@@ -8,14 +8,14 @@ const $$ = require('../utils/helpers');
 const data = require('./strings');
 const namingConvenions = require('../utils/namingConventions');
 const conventions = Object.keys(namingConvenions);
-const emptyDir = require('empty-dir');
+const prepareTestDir = require('../utils/test/prepare-test-dir');
 
 const testConfiguration = {
     "namingConvention": "classic",
     "useCollections": true,
     "collectionSuffix": "--bem-collection",
     "createBemDirectory": true,
-    "bemDirectory": ".\\test\\results\\sbs\\styles",
+    "bemDirectory": path.normalize('./test/results/sbs/styles'),
     "ext": "scss",
     "createRootStylesFile": true,
     "rootStylesFile": "styles.scss",
@@ -27,21 +27,7 @@ describe('generators/sbs/index.js :: test of creating blocks, elements, modifier
 
     it('Prepare test directory', () => {
         
-        function cleanupTestDir(pathToTestStylesDir) {
-            if (fs.existsSync(pathToTestStylesDir)) {
-                fs.readdirSync(pathToTestStylesDir).forEach((file, index) => {
-                     let curPath = pathToTestStylesDir + "/" + file;
-                     if (fs.lstatSync(curPath).isDirectory()) {
-                        cleanupTestDir(curPath);
-                    } else {
-                        fs.unlinkSync(curPath);
-                    }
-                });
-            } else {
-                fs.mkdirSync(pathToTestStylesDir);
-            }
-        }
-        cleanupTestDir(testConfiguration.bemDirectory);
+        prepareTestDir(testConfiguration.bemDirectory);
         fs.copyFileSync(
             path.join(__dirname, '../generators/config/templates/root.tmpl'),
             path.join(__dirname, 'results/sbs/styles', testConfiguration.rootStylesFile)

@@ -8,8 +8,15 @@ const $$ = require('../utils/helpers');
 const data = require('./strings');
 const namingConvenions = require('../utils/namingConventions');
 const conventions = Object.keys(namingConvenions);
+const prepareTestDir = require('../utils/test/prepare-test-dir');
 
 describe('generators/config/index.js :: test of creating of base structure', () => {
+
+    it('Prepare test directory', () => {
+        let dest = path.normalize('./test/results/configs');
+        prepareTestDir(dest);
+        fs.mkdirSync(path.join(dest, 'dir-exists'));
+    });
 
     it('Create bemDirectory and rootStyleFile', () => {
 
