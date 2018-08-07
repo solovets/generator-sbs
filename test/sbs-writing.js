@@ -4,10 +4,6 @@ const fs = require('fs');
 const _ = require('underscore.string');
 const assert = require('yeoman-assert');
 const helpers = require('yeoman-test');
-const $$ = require('../utils/helpers');
-const data = require('./strings');
-const namingConvenions = require('../utils/namingConventions');
-const conventions = Object.keys(namingConvenions);
 const prepareTestDir = require('../utils/test/prepare-test-dir');
 
 const testConfiguration = {
