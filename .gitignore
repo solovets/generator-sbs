@@ -1,3 +1,5 @@
 node_modules/
 .idea/
 test/results/configs/dir-should-be-created/
+.vscode/
+test/results/configs/dir-exists/file-should-be-created.scss

@@ -13,9 +13,19 @@ var sbs = require('yeoman-generator'),
 
 module.exports = class extends sbs {
 
+    constructor(args, opts) {
+        super(args, opts);
+
+        this.option('testmode');
+
+        this.test = !!this.options.testmode;
+
+        if (this.test) this.testConfiguration = this.options.testConfiguration;
+    }
+
     prompting() {
 
-        const config = this.config.getAll(),
+        const  config = this.test ? this.testConfiguration : this.config.getAll(),
             bemDirPath = path.join(this.destinationRoot(), config.bemDirectory),
             currentStructure = getCurrentStructure(config, bemDirPath),
             done = this.async();
@@ -54,7 +64,7 @@ module.exports = class extends sbs {
 
     writing() {
 
-        const  config = this.config.getAll(),
+        const  config = this.test ? this.testConfiguration : this.config.getAll(),
             answers = this.answers,
             templatePath = this.answers.creatingComponentType + '.tmpl',
             root = path.join(this.destinationRoot(), config.bemDirectory);

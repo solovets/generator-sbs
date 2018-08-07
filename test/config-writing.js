@@ -9,11 +9,7 @@ const data = require('./strings');
 const namingConvenions = require('../utils/namingConventions');
 const conventions = Object.keys(namingConvenions);
 
-const table = {
-    title: 'generators/config/index.js :: test of creating of base structure'
-};
-
-describe(table.title, () => {
+describe('generators/config/index.js :: test of creating of base structure', () => {
 
     it('Create bemDirectory and rootStyleFile', () => {
 
