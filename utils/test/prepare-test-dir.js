@@ -10,7 +10,6 @@ function prepareTestDir(pathToTestDir) {
 
     if (fs.existsSync(pathToTestDir)) {
         count++;
-        console.log('++', count);
         fs.readdirSync(pathToTestDir).forEach((file) => {
              let currentPath = pathToTestDir + path.sep + file;
              if (fs.lstatSync(currentPath).isDirectory()) {

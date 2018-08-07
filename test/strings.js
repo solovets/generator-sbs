@@ -109,6 +109,28 @@ module.exports = {
             "prefixForModifier": "_"
         }
 
-    ]
+    ],
+    componentName: [
+        'test',
+        'Test',
+        'test string',
+        'Test String',
+        ' test  ',
+        ' Test  ',
+        'nul',
+        'prn',
+        'con',
+        'lpt',
+        'lpt0',
+        'com1',
+        'com1test',
+        '--name',
+        '__name',
+        '_name',
+        '-name',
+        'name--',
+        'name)',
+        'name_'
+    ],
 
 };
